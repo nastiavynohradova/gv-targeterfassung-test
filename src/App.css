@@ -1,0 +1,16 @@
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+.appWrapper {
+  text-align: center;
+}
+label + .MuiInput-formControl {
+  margin-top: 0px !important;
+}
+.MuiInputBase-input {
+  padding: 20px 0px 7px !important;
+}

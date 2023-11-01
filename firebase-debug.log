@@ -1,0 +1,133 @@
+[debug] [2023-10-24T21:13:58.480Z] ----------------------------------------------------------------------
+[debug] [2023-10-24T21:13:58.482Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2023-10-24T21:13:58.483Z] CLI Version:   12.7.0
+[debug] [2023-10-24T21:13:58.483Z] Platform:      win32
+[debug] [2023-10-24T21:13:58.483Z] Node Version:  v16.20.2
+[debug] [2023-10-24T21:13:58.484Z] Time:          Tue Oct 24 2023 23:13:58 GMT+0200 (Central European Summer Time)
+[debug] [2023-10-24T21:13:58.484Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2023-10-24T21:13:58.565Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-10-24T21:13:58.566Z] > authorizing via signed-in user (igrdoroschenko@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  D:\Edu\self-study\Programmierung\giconsult\offline-first-react-app-before_offline
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[info] i  If you want to create a project in a Google Cloud organization or folder, please use "firebase projects:create" instead, and return to this command when you've created the project. 
+[debug] [2023-10-24T21:15:10.861Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2023-10-24T21:15:10.861Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"ihor-doroshenko-offline-app","name":"i-d-o-a"}
+[debug] [2023-10-24T21:15:11.796Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 200
+[debug] [2023-10-24T21:15:11.796Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"name":"operations/cp.6534082186410545602"}
+[debug] [2023-10-24T21:15:11.798Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.6534082186410545602 [none]
+[debug] [2023-10-24T21:15:12.645Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.6534082186410545602 200
+[debug] [2023-10-24T21:15:12.645Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.6534082186410545602 {"name":"operations/cp.6534082186410545602"}
+[debug] [2023-10-24T21:15:13.148Z] [Project Creation Poller] Retrying task index 0
+[debug] [2023-10-24T21:15:13.148Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.6534082186410545602 [none]
+[debug] [2023-10-24T21:15:14.020Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.6534082186410545602 200
+[debug] [2023-10-24T21:15:14.020Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.6534082186410545602 {"name":"operations/cp.6534082186410545602","metadata":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.ProjectCreationStatus","gettable":true}}
+[debug] [2023-10-24T21:15:15.021Z] [Project Creation Poller] Retrying task index 0
+[debug] [2023-10-24T21:15:15.021Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.6534082186410545602 [none]
+[debug] [2023-10-24T21:15:15.929Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.6534082186410545602 200
+[debug] [2023-10-24T21:15:15.929Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.6534082186410545602 {"name":"operations/cp.6534082186410545602","metadata":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.ProjectCreationStatus","gettable":true,"ready":true},"done":true,"response":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.Project","projectNumber":"430761117223","projectId":"ihor-doroshenko-offline-app","lifecycleState":"ACTIVE","name":"i-d-o-a","createTime":"2023-10-24T21:15:08.322Z"}}
+[debug] [2023-10-24T21:15:15.931Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1beta1/projects/ihor-doroshenko-offline-app:addFirebase [none]
+[debug] [2023-10-24T21:15:16.837Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1beta1/projects/ihor-doroshenko-offline-app:addFirebase 403
+[debug] [2023-10-24T21:15:16.837Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1beta1/projects/ihor-doroshenko-offline-app:addFirebase {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2023-10-24T21:15:16.838Z] HTTP Error: 403, The caller does not have permission
+[debug] [2023-10-24T21:15:16.954Z] FirebaseError: HTTP Error: 403, The caller does not have permission
+    at responseToError (C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:49:12)
+    at RetryOperation._fn (C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:285:77)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+[error] 
+[error] Error: Failed to add Firebase to Google Cloud Platform project. See firebase-debug.log for more info.
+[debug] [2023-10-24T21:15:38.435Z] ----------------------------------------------------------------------
+[debug] [2023-10-24T21:15:38.438Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:create
+[debug] [2023-10-24T21:15:38.438Z] CLI Version:   12.7.0
+[debug] [2023-10-24T21:15:38.439Z] Platform:      win32
+[debug] [2023-10-24T21:15:38.439Z] Node Version:  v16.20.2
+[debug] [2023-10-24T21:15:38.439Z] Time:          Tue Oct 24 2023 23:15:38 GMT+0200 (Central European Summer Time)
+[debug] [2023-10-24T21:15:38.440Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2023-10-24T21:15:38.520Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-10-24T21:15:38.521Z] > authorizing via signed-in user (igrdoroschenko@gmail.com)
+[debug] [2023-10-24T21:15:48.256Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2023-10-24T21:15:48.257Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"aaaaaaaaaaaaa","name":"aaa2"}
+[debug] [2023-10-24T21:15:49.046Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 409
+[debug] [2023-10-24T21:15:49.047Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"error":{"code":409,"message":"Requested entity already exists","status":"ALREADY_EXISTS"}}
+[debug] [2023-10-24T21:15:49.143Z] FirebaseError: HTTP Error: 409, Requested entity already exists
+    at responseToError (C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:49:12)
+    at RetryOperation._fn (C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:285:77)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+[error] 
+[error] Error: Failed to create project because there is already a project with ID aaaaaaaaaaaaa. Please try again with a unique project ID.
+[debug] [2023-10-24T21:15:56.933Z] ----------------------------------------------------------------------
+[debug] [2023-10-24T21:15:56.935Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:create
+[debug] [2023-10-24T21:15:56.936Z] CLI Version:   12.7.0
+[debug] [2023-10-24T21:15:56.936Z] Platform:      win32
+[debug] [2023-10-24T21:15:56.936Z] Node Version:  v16.20.2
+[debug] [2023-10-24T21:15:56.937Z] Time:          Tue Oct 24 2023 23:15:56 GMT+0200 (Central European Summer Time)
+[debug] [2023-10-24T21:15:56.937Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2023-10-24T21:15:57.021Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-10-24T21:15:57.022Z] > authorizing via signed-in user (igrdoroschenko@gmail.com)
+[debug] [2023-10-24T21:16:10.762Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2023-10-24T21:16:10.762Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"ihor-doroshenko-offline-app","name":"ihor-doroshenko-app"}
+[debug] [2023-10-24T21:16:11.550Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 409
+[debug] [2023-10-24T21:16:11.551Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"error":{"code":409,"message":"Requested entity already exists","status":"ALREADY_EXISTS"}}
+[debug] [2023-10-24T21:16:11.649Z] FirebaseError: HTTP Error: 409, Requested entity already exists
+    at responseToError (C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:49:12)
+    at RetryOperation._fn (C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:285:77)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+[error] 
+[error] Error: Failed to create project because there is already a project with ID ihor-doroshenko-offline-app. Please try again with a unique project ID.
+[debug] [2023-10-24T21:16:18.811Z] ----------------------------------------------------------------------
+[debug] [2023-10-24T21:16:18.814Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:create
+[debug] [2023-10-24T21:16:18.814Z] CLI Version:   12.7.0
+[debug] [2023-10-24T21:16:18.815Z] Platform:      win32
+[debug] [2023-10-24T21:16:18.815Z] Node Version:  v16.20.2
+[debug] [2023-10-24T21:16:18.816Z] Time:          Tue Oct 24 2023 23:16:18 GMT+0200 (Central European Summer Time)
+[debug] [2023-10-24T21:16:18.816Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2023-10-24T21:16:18.903Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-10-24T21:16:18.903Z] > authorizing via signed-in user (igrdoroschenko@gmail.com)
+[debug] [2023-10-24T21:16:37.657Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2023-10-24T21:16:37.658Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"ihor-doroshenko-offline-app-1","name":"ihordoroshenkoapp1"}
+[debug] [2023-10-24T21:16:38.657Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 200
+[debug] [2023-10-24T21:16:38.657Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"name":"operations/cp.8430411053178656239"}
+[debug] [2023-10-24T21:16:38.658Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.8430411053178656239 [none]
+[debug] [2023-10-24T21:16:39.513Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.8430411053178656239 200
+[debug] [2023-10-24T21:16:39.513Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.8430411053178656239 {"name":"operations/cp.8430411053178656239"}
+[debug] [2023-10-24T21:16:40.014Z] [Project Creation Poller] Retrying task index 0
+[debug] [2023-10-24T21:16:40.015Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.8430411053178656239 [none]
+[debug] [2023-10-24T21:16:40.897Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.8430411053178656239 200
+[debug] [2023-10-24T21:16:40.897Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.8430411053178656239 {"name":"operations/cp.8430411053178656239","metadata":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.ProjectCreationStatus","gettable":true}}
+[debug] [2023-10-24T21:16:41.898Z] [Project Creation Poller] Retrying task index 0
+[debug] [2023-10-24T21:16:41.898Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.8430411053178656239 [none]
+[debug] [2023-10-24T21:16:42.815Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.8430411053178656239 200
+[debug] [2023-10-24T21:16:42.815Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/cp.8430411053178656239 {"name":"operations/cp.8430411053178656239","metadata":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.ProjectCreationStatus","gettable":true,"ready":true},"done":true,"response":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.Project","projectNumber":"303859097740","projectId":"ihor-doroshenko-offline-app-1","lifecycleState":"ACTIVE","name":"ihordoroshenkoapp1","createTime":"2023-10-24T21:16:35.043Z"}}
+[debug] [2023-10-24T21:16:42.816Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1beta1/projects/ihor-doroshenko-offline-app-1:addFirebase [none]
+[debug] [2023-10-24T21:16:43.946Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1beta1/projects/ihor-doroshenko-offline-app-1:addFirebase 403
+[debug] [2023-10-24T21:16:43.947Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1beta1/projects/ihor-doroshenko-offline-app-1:addFirebase {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2023-10-24T21:16:43.948Z] HTTP Error: 403, The caller does not have permission
+[debug] [2023-10-24T21:16:44.041Z] FirebaseError: HTTP Error: 403, The caller does not have permission
+    at responseToError (C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:49:12)
+    at RetryOperation._fn (C:\Users\Ihor\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:285:77)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+[error] 
+[error] Error: Failed to add Firebase to Google Cloud Platform project. See firebase-debug.log for more info.
