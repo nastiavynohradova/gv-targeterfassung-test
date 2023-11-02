@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "center",
     "& > *": {
-      padding: "20px",
+      padding: "10px",
       display: "flex",
       flexDirection: "column",
     },
@@ -241,7 +241,7 @@ function App() {
         })
         .join("\n");
 
-    zip.file("daten_von_heute.csv", csvContent);
+    zip.file(`${currentDate}.csv`, csvContent);
 
     // Add the image files to the ZIP file
     todaySubmissions.forEach((el, index) => {

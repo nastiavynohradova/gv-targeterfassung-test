@@ -9,8 +9,8 @@ body,
   text-align: center;
 }
 label + .MuiInput-formControl {
-  margin-top: 0px !important;
+  margin-top: 15px !important;
 }
 .MuiInputBase-input {
-  padding: 20px 0px 7px !important;
+  padding: 5px 0px 7px !important;
 }

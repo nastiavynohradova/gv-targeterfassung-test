@@ -17,6 +17,9 @@ const useStyles = makeStyles((theme) => ({
     fontSize: "1.2rem", // Adjust the font size
     marginBottom: "5px", // Add some spacing below titles
   },
+  textField: {
+    marginBottom: "1px", // Add margin to text fields
+  },
 }));
 
 const MainForm = ({
@@ -62,7 +65,7 @@ const MainForm = ({
             .slice(0, 4);
         }}
       />
-
+      <br></br>
       <Typography variant="h6" className={classes.title}>
         Kilometrierung
       </Typography>
@@ -88,7 +91,7 @@ const MainForm = ({
           onChange={handleInputChange}
         />
       </Box>
-
+      <br></br>
       <Typography variant="h6" className={classes.title}>
         Seite
       </Typography>
@@ -117,7 +120,7 @@ const MainForm = ({
           onChange={formData.handleChange}
         />
       </Box>
-
+      <br></br>
       <Typography variant="h6" className={classes.title}>
         Punktnummer
       </Typography>
@@ -130,7 +133,7 @@ const MainForm = ({
         onChange={handleInputChange}
         margin="normal"
       />
-
+      <br></br>
       <Typography variant="h6" className={classes.title}>
         GVP Länge, mm
       </Typography>
@@ -143,22 +146,23 @@ const MainForm = ({
         onChange={handleInputChange}
         margin="normal"
       />
-
+      <br></br>
       <Typography variant="h6" className={classes.title}>
         Datum
       </Typography>
-
+      <br></br>
       <TextField
         required
         fullWidth
         name="currentDate"
+        placeholder="z.B. 2023-10-20"
         value={currentDate}
         onChange={(e) => {
           setCurrentDate(e.target.value);
         }}
         margin="normal"
       />
-
+      <br></br>
       <Typography variant="h6" className={classes.title}>
         Foto hochladen
       </Typography>
