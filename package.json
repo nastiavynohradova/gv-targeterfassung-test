@@ -1,6 +1,6 @@
 {
   "name": "gv-targeterfassung",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "https://giconsultapp.github.io/gv-targeterfassung-app",
   "private": true,
   "dependencies": {
