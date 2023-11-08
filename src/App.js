@@ -70,10 +70,17 @@ function App() {
       }
     };
 
-    const intervalId = setInterval(
-      clearDatabaseEvery2Weeks,
-      14 * 24 * 60 * 60 * 1000
-    ); // 7 days in milliseconds
+    // Calculate the time until the next midnight
+    const now = new Date();
+    const nextMidnight = new Date(now);
+    nextMidnight.setHours(24, 0, 0, 0);
+    const timeUntilMidnight = nextMidnight - now;
+    console.log(timeUntilMidnight);
+
+    // Schedule the first interval to start at the next midnight and repeat every 14 days at midnight
+    const interval = 14 * 24 * 60 * 60 * 1000 + timeUntilMidnight;
+    const intervalId = setInterval(clearDatabaseEvery2Weeks, interval);
+    console.log(interval);
 
     // Cleanup the interval when the component unmounts
     return () => {

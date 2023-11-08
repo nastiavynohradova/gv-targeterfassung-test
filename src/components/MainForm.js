@@ -73,7 +73,7 @@ const MainForm = ({
       <Box display="flex" flexDirection="row" alignItems="center">
         <TextField
           required
-          style={{ marginRight: "10px" }}
+          style={{ marginRight: "5px" }}
           id="km"
           name="km"
           type="number"
@@ -81,8 +81,10 @@ const MainForm = ({
           value={formData.km}
           onChange={handleInputChange}
         />
+        <Typography>, </Typography>
         <TextField
           required
+          style={{ marginLeft: "5px" }}
           id="met"
           name="met"
           type="number"
