@@ -48,6 +48,8 @@ const App = () => {
   const [importData, setImportData] = useState([]);
   const [showTable, setShowTable] = useState(false);
 
+  console.log(importData);
+
   useEffect(() => {
     const clearDatabaseEvery2Weeks = async () => {
       try {
@@ -84,7 +86,7 @@ const App = () => {
         <BasicTable
           importData={importData}
           reff={reff}
-          
+          setImportData={setImportData}
         />
       )}
     </div>

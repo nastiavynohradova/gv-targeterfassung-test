@@ -30,6 +30,7 @@ const useStyles = makeStyles((theme) => ({
 const MainForm = ({
   reff,
   row,
+  setImportData
 }) => {
 
   const [formData, setFormData] = useState({
@@ -153,6 +154,17 @@ const MainForm = ({
   };
 
   const handleSubmit = () => {
+    console.log(1)
+    setImportData(state => state.map(el => {
+      console.log({el, streckennummer})
+      if(el.Streckennummer === streckennummer) {
+        return {
+          ...el,
+          Punktnummer: punktnummer
+        }
+      }
+      return el;
+  }))
     // Check if a photo is selected
     if (!formData.photo) {
       setErrorMessage("Bitte wählen Sie ein Foto aus, bevor Sie fortfahren.");
@@ -234,6 +246,7 @@ const MainForm = ({
     };
     reader.readAsDataURL(formData.photo);
     reff.current.value = "";
+   
   };
 
   const handleSuccessClose = (event, reason) => {

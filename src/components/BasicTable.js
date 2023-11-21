@@ -25,6 +25,7 @@ const useStyles = makeStyles((theme) => ({
 export default function EnhancedTable({
   importData,
   reff,
+  setImportData
 }) {
   const classes = useStyles();
   return (
@@ -47,15 +48,17 @@ export default function EnhancedTable({
               <TableCell component="th" scope="row">
                 {row.Datum}
               </TableCell>
-              <TableCell align="right">{row.Kilometrierung}</TableCell>
+              <TableCell align="right">{row.Kilometrierungwert
+}</TableCell>
               <TableCell align="right">{row.Punktnummer}</TableCell>
               <TableCell align="right">{row.Seite}</TableCell>
               <TableCell align="right">{row.Streckennummer}</TableCell>
-              <TableCell align="right"></TableCell>
+              <TableCell align="right">{row["GVP L�nge (m)"]}</TableCell>
               <TableCell align="right">
                 <MainFormDialogContainer
                   row={row}
                   reff={reff}
+                  setImportData={setImportData}
                 />
               </TableCell>
             </TableRow>

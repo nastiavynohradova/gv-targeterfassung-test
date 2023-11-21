@@ -39,6 +39,7 @@ function SimpleDialog({
   selectedValue,
   open,
   reff,
+  setImportData
 }) {
   const classes = useStyles();
   const handleClose = () => {
@@ -68,6 +69,7 @@ function SimpleDialog({
         <MainForm
           row={row}
           reff={reff}
+          setImportData={setImportData}
         />
       </Paper>
 
@@ -79,6 +81,7 @@ export default function MainFormDialogContainer({
   row,
   reff,
   selectedRowData,
+  setImportData
 }) {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
@@ -109,6 +112,7 @@ export default function MainFormDialogContainer({
         onClose={handleClose}
         reff={reff}
         selectedRowData={selectedRowData}
+        setImportData={setImportData}
       />
     </div>
   );
