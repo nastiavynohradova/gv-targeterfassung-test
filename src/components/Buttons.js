@@ -11,10 +11,14 @@ const useStyles = makeStyles((theme) => ({
     fontSize: "1rem",
     textTransform: "none",
   },
-  buttonContainer: {
+  buttonsContainer: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
+  },
+  buttonContainer: {
+    textAlign: "center",
+    marginTop: theme.spacing(2),
   },
 }));
 
@@ -26,7 +30,7 @@ const Buttons = ({
   const classes = useStyles();
 
   return (
-    <Box>
+    <Box className={classes.buttonContainer}>
       <Button
         variant="contained"
         color="primary"
@@ -38,7 +42,7 @@ const Buttons = ({
       </Button>
       <br />
       <br />
-      <Box className={classes.buttonContainer}>
+      <Box className={classes.buttonsContainer}>
         <Button
           variant="contained"
           color="primary"
