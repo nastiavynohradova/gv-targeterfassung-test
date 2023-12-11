@@ -32,6 +32,7 @@ const MainForm = ({
   row,
   setImportData
 }) => {
+  console.log(row)
 
   const [formData, setFormData] = useState({
     seite: false,
@@ -154,9 +155,7 @@ const MainForm = ({
   };
 
   const handleSubmit = () => {
-    console.log(1)
     setImportData(state => state.map(el => {
-      console.log({el, streckennummer})
       if(el.Streckennummer === streckennummer) {
         return {
           ...el,

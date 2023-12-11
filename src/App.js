@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import "./App.css";
 import { openDatabase } from "./db";
 import CSVimport from "./components/CSVimport";
-import BasicTable from "./components/BasicTable";
+import TableWrapper from "./components/TableWrapper";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -46,9 +46,10 @@ const App = () => {
   const reff = useRef(null);
 
   const [importData, setImportData] = useState([]);
+  const [colNames, setColNames] = useState([]);
   const [showTable, setShowTable] = useState(false);
 
-  console.log(importData);
+  console.log(importData)
 
   useEffect(() => {
     const clearDatabaseEvery2Weeks = async () => {
@@ -81,12 +82,13 @@ const App = () => {
 
   return (
     <div className={classnames(classes.root, "appWrapper")}>
-      <CSVimport setShowTable={setShowTable} setImportData={setImportData} />
+      <CSVimport setShowTable={setShowTable} setImportData={setImportData} setColNames={setColNames} />
       {showTable && (
-        <BasicTable
+        <TableWrapper
           importData={importData}
           reff={reff}
           setImportData={setImportData}
+          colNames={colNames}
         />
       )}
     </div>

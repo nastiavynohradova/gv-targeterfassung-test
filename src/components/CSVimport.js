@@ -4,12 +4,15 @@ import { Box, Button, Input, Typography, Paper } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 
-const handleCSVFile = (file, setImportData) => {
+const handleCSVFile = (file, setImportData, setColNames) => {
   Papa.parse(file, {
     complete: (result) => {
-      setImportData(result.data);
+      const name = file.name ? file.name.split(".").at(0) : "";
+      setImportData([...result.data.map(el => ({...el, Streckennummer: name}))]);
+      setColNames([...result.meta.fields, "Streckennummer"])
     },
     header: true,
+    encoding: "ISO-8859-1",
   });
 };
 
@@ -39,13 +42,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CSVimport = ({ setShowTable, setImportData }) => {
+const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
   const classes = useStyles();
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      handleCSVFile(file, setImportData);
+      handleCSVFile(file, setImportData, setColNames);
       setShowTable(true);
     }
   };
