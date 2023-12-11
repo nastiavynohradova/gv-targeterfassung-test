@@ -34,8 +34,7 @@ const MainForm = ({ reff, row, setImportData }) => {
     gvp: "",
     photo: null,
   });
-  console.log(row);
-  console.log(row["Km-Station Ist"]);
+
   const [streckennummer, setStreckennummer] = useState(
     row.Streckennummer ? row.Streckennummer : ""
   );
@@ -51,6 +50,19 @@ const MainForm = ({ reff, row, setImportData }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [submissions, setSubmissions] = useState([]); // Store all submissions
+
+ useEffect(() => {
+    setImportData(state => state.map(el => {
+        if(el.id === row.id) {
+          return {
+            ...el,
+            gvp
+          }
+        }
+        return el
+    }))
+  }, [gvp])
+   
 
   // State for displaying the success and error message
   const [successOpen, setSuccessOpen] = useState(false);

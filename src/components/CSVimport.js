@@ -3,15 +3,16 @@ import Papa from "papaparse";
 import { Box, Button, Input, Typography, Paper } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { CloudUpload, OpenInBrowser } from "@material-ui/icons";
+import { SimpleDialog } from "./Formular";
 
 const handleCSVFile = (file, setImportData, setColNames) => {
   Papa.parse(file, {
     complete: (result) => {
       const name = file.name ? file.name.split(".").at(0) : "";
       setImportData([
-        ...result.data.map((el) => ({ ...el, Streckennummer: name })),
+        ...result.data.map((el, idx) => ({ ...el, id: idx, Streckennummer: name, gvp: "" })),
       ]);
-      setColNames([...result.meta.fields, "Streckennummer"]);
+      setColNames([...result.meta.fields, "Streckennummer", "gvp"]);
     },
     header: true,
     encoding: "ISO-8859-1",
@@ -51,6 +52,15 @@ const useStyles = makeStyles((theme) => ({
 
 const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
   const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = (value) => {
+    setOpen(false);
+  };
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -84,16 +94,21 @@ const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
             >
               Koordinatendatei hochladen
             </Button>
-            <Button
+            
+          </label>
+        </Box>
+        <Box>
+        <Button
               variant="contained"
               startIcon={<OpenInBrowser />}
               color="secondary"
               className={classes.button}
               component="span"
+              onClick={handleClickOpen}
             >
               Formular öffnen
             </Button>
-          </label>
+            <SimpleDialog selectedValue={""} open={open} onClose={handleClose} />
         </Box>
       </Paper>
     </Box>

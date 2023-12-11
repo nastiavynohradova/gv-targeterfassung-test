@@ -73,12 +73,12 @@ function SimpleDialog({
   );
 }
 
-export default function MainFormDialogContainer({
+const MainFormDialogContainer = ({
   row,
   reff,
   selectedRowData,
   setImportData
-}) {
+}) => {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const [selectedValue, setSelectedValue] = React.useState([]);
@@ -113,3 +113,5 @@ export default function MainFormDialogContainer({
     </div>
   );
 }
+
+export default MainFormDialogContainer;

@@ -38,7 +38,6 @@ const TableWrapper = ({
             {colNames.map((col,idx) => (
               <TableCell key={`keys-${idx}`} align="right">{col}</TableCell>
             ))}
-            <TableCell key={`keys-edit`} align="right">GVP Länge</TableCell>
             <TableCell key={`keys-edit`} align="right"></TableCell>
           </TableRow>
         </TableHead>
@@ -46,9 +45,8 @@ const TableWrapper = ({
           {importData.map((row, idx) => (
             <TableRow key={idx}>
               {colNames.map((col, idx) => (
-              <TableCell key={`values-${idx}`} align="right">{row[col]}</TableCell>
+                <TableCell key={`values-${idx}`} align="right">{row[col]}</TableCell>
             ))}
-              <TableCell key={`keys-edit`} align="right"></TableCell>
               <TableCell key={`values-edit`} align="right">
                 <MainFormDialogContainer
                   row={row}
