@@ -49,7 +49,7 @@ const App = () => {
   const [colNames, setColNames] = useState([]);
   const [showTable, setShowTable] = useState(false);
 
-  console.log(importData)
+  console.log(importData);
 
   useEffect(() => {
     const clearDatabaseEvery2Weeks = async () => {
@@ -78,11 +78,13 @@ const App = () => {
     };
   }, []);
 
-
-
   return (
     <div className={classnames(classes.root, "appWrapper")}>
-      <CSVimport setShowTable={setShowTable} setImportData={setImportData} setColNames={setColNames} />
+      <CSVimport
+        setShowTable={setShowTable}
+        setImportData={setImportData}
+        setColNames={setColNames}
+      />
       {showTable && (
         <TableWrapper
           importData={importData}
@@ -93,6 +95,6 @@ const App = () => {
       )}
     </div>
   );
-}
+};
 
 export default App;

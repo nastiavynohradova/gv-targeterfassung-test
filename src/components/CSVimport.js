@@ -2,14 +2,16 @@ import React, { useState } from "react";
 import Papa from "papaparse";
 import { Box, Button, Input, Typography, Paper } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import CloudUploadIcon from "@material-ui/icons/CloudUpload";
+import { CloudUpload, OpenInBrowser } from "@material-ui/icons";
 
 const handleCSVFile = (file, setImportData, setColNames) => {
   Papa.parse(file, {
     complete: (result) => {
       const name = file.name ? file.name.split(".").at(0) : "";
-      setImportData([...result.data.map(el => ({...el, Streckennummer: name}))]);
-      setColNames([...result.meta.fields, "Streckennummer"])
+      setImportData([
+        ...result.data.map((el) => ({ ...el, Streckennummer: name })),
+      ]);
+      setColNames([...result.meta.fields, "Streckennummer"]);
     },
     header: true,
     encoding: "ISO-8859-1",
@@ -26,8 +28,13 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(3),
     backgroundColor: theme.palette.background.paper,
   },
-  button: {
+  buttonContainer: {
     marginTop: theme.spacing(2),
+    textAlign: "center", // Center-align the buttons
+  },
+  button: {
+    display: "block",
+    margin: "10px auto",
     padding: "10px 20px",
     fontSize: "1rem",
     textTransform: "none",
@@ -59,7 +66,7 @@ const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
         <Typography variant="h4">Die GV-Targeterfassung</Typography>
       </Paper>
       <Paper className={classes.content} elevation={3}>
-        <Box>
+        <Box className={classes.buttonContainer}>
           <label htmlFor="csv-input">
             <Input
               accept=".csv"
@@ -70,12 +77,21 @@ const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
             />
             <Button
               variant="contained"
-              startIcon={<CloudUploadIcon />}
+              startIcon={<CloudUpload />}
               color="secondary"
               className={classes.button}
               component="span"
             >
               Koordinatendatei hochladen
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<OpenInBrowser />}
+              color="secondary"
+              className={classes.button}
+              component="span"
+            >
+              Formular öffnen
             </Button>
           </label>
         </Box>

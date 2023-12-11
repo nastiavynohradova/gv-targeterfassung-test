@@ -27,33 +27,29 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const MainForm = ({
-  reff,
-  row,
-  setImportData
-}) => {
-  console.log(row)
-
+const MainForm = ({ reff, row, setImportData }) => {
   const [formData, setFormData] = useState({
     seite: false,
     sonstiges: "",
     gvp: "",
     photo: null,
   });
-
-  const [streckennummer, setStreckennummer] = useState(row.Streckennummer ? row.Streckennummer : "");
-  const [km, setKm] = useState(row.Km ? row.Km : "");
+  console.log(row);
+  console.log(row["Km-Station Ist"]);
+  const [streckennummer, setStreckennummer] = useState(
+    row.Streckennummer ? row.Streckennummer : ""
+  );
+  const [km, setKm] = useState(
+    row["Km-Station Ist"] ? row["Km-Station Ist"] : ""
+  );
   const [met, setMet] = useState(row.Met ? row.Met : "");
   const [seite, setSeite] = useState("");
   const [sonstiges, setSonstiges] = useState("");
-  const [punktnummer, setPunktnummer] = useState(row.Punktnummer ? row.Punktnummer : "");
+  const [punktnummer, setPunktnummer] = useState(row.PktNr ? row.PktNr : "");
   const [gvp, setGVP] = useState("");
   const [photo, setPhoto] = useState("");
-
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
-  
   const [submissions, setSubmissions] = useState([]); // Store all submissions
 
   // State for displaying the success and error message
@@ -65,13 +61,14 @@ const MainForm = ({
     setCurrentDate(new Date().toISOString().slice(0, 10));
     if (row) {
       // Autofill "Punktnummer" if available
-      if (row.Punktnummer) {
-        setPunktnummer(row.Punktnummer);
+      if (row.PktNr) {
+        setPunktnummer(row.PktNr);
       }
-      if (row.Kilometrierungwert) {
-        const [kmValue, meterValue] = row.Kilometrierungwert.split(",");
+      if (row["Km-Station Ist"]) {
+        const [kmValue, meterValue] = row["Km-Station Ist"].split(",");
         setKm(kmValue);
         setMet(meterValue);
+        console.log(kmValue);
       }
       if (row.Seite) {
         setSeite(row.Seite);
@@ -155,15 +152,17 @@ const MainForm = ({
   };
 
   const handleSubmit = () => {
-    setImportData(state => state.map(el => {
-      if(el.Streckennummer === streckennummer) {
-        return {
-          ...el,
-          Punktnummer: punktnummer
+    setImportData((state) =>
+      state.map((el) => {
+        if (el.Streckennummer === streckennummer) {
+          return {
+            ...el,
+            Punktnummer: punktnummer,
+          };
         }
-      }
-      return el;
-  }))
+        return el;
+      })
+    );
     // Check if a photo is selected
     if (!formData.photo) {
       setErrorMessage("Bitte wählen Sie ein Foto aus, bevor Sie fortfahren.");
@@ -245,7 +244,6 @@ const MainForm = ({
     };
     reader.readAsDataURL(formData.photo);
     reff.current.value = "";
-   
   };
 
   const handleSuccessClose = (event, reason) => {
@@ -312,7 +310,11 @@ const MainForm = ({
         borderRadius="8px"
         boxShadow="0 0 5px rgba(0, 0, 0, 0.2)"
       >
-        <Attribute value={streckennummer} setValue={setStreckennummer} name="Streckennummer" />
+        <Attribute
+          value={streckennummer}
+          setValue={setStreckennummer}
+          name="Streckennummer"
+        />
         {/* <Attribute value={km} setValue={setKm} name="Km" /> */}
         <Typography variant="h6" className={classes.title}>
           Kilometrierung
@@ -351,7 +353,7 @@ const MainForm = ({
               id="seite"
               name="seite"
               value={seite}
-              onChange={handleInputChange}
+              onChange={(e) => setSeite(e.target.value)}
             >
               <FormControlLabel value="L" control={<Radio />} label="L" />
               <FormControlLabel value="R" control={<Radio />} label="R" />
@@ -363,12 +365,16 @@ const MainForm = ({
             label="Sonstiges"
             id="sonstiges"
             name="sonstiges"
-            value={formData.sonstiges}
-            onChange={formData.handleChange}
+            value={sonstiges}
+            onChange={(e) => setSonstiges(e.target.value)}
           />
         </Box>
         <br></br>
-        <Attribute value={punktnummer} setValue={setPunktnummer} name="Punktnummer" />
+        <Attribute
+          value={punktnummer}
+          setValue={setPunktnummer}
+          name="Punktnummer"
+        />
         <br></br>
         <Attribute value={gvp} setValue={setGVP} name="GVP Länge, mm" />
         <br></br>
@@ -406,14 +412,14 @@ const MainForm = ({
         downloadCombinedData={downloadCombinedData}
         downloadCombinedTodayData={downloadCombinedTodayData}
       />
-            <Snackbar
+      <Snackbar
         open={!!successMessage}
         autoHideDuration={6000}
         onClose={handleSuccessClose}
       >
         <SnackbarContent
           message={successMessage}
-/*           className={classes.successSnackbar} */
+          /*           className={classes.successSnackbar} */
         />
       </Snackbar>
 
@@ -424,7 +430,7 @@ const MainForm = ({
       >
         <SnackbarContent
           message={errorMessage}
-/*           className={classes.errorSnackbar} */
+          /*           className={classes.errorSnackbar} */
         />
       </Snackbar>
     </>
