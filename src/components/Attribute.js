@@ -4,13 +4,26 @@ import React from "react";
 const useStyles = makeStyles((theme) => ({
   title: {
     fontWeight: "bold",
-    fontSize: "1.2rem", // Adjust the font size
-    marginBottom: "5px", // Add some spacing below titles
+    fontSize: "1.2rem",
+    marginBottom: "5px",
   },
 }));
 
 const Attribute = ({ value, setValue, name }) => {
   const classes = useStyles();
+
+  const handleInputChange = (e) => {
+    let newValue = e.target.value;
+
+    // If the attribute is "Streckennummer", ensure it is a positive integer
+    if (name === "Streckennummer") {
+      newValue = Math.max(0, parseInt(newValue, 10)).toString().slice(0, 4);
+    }
+
+    // Update the state in the parent component
+    setValue(newValue);
+  };
+
   return (
     <>
       <Typography variant="h5" className={classes.title}>
@@ -20,22 +33,11 @@ const Attribute = ({ value, setValue, name }) => {
         required
         fullWidth
         name={name}
-        /*           type={name === "km" ? "text" : "number"} */
-        /* type="number" */
         value={value}
-        onChange={(e) => {
-          setValue(e.target.value);
-        }}
+        onChange={handleInputChange}
         margin="normal"
-        onInput={(e) => {
-          if (name === "Streckennummer") {
-            e.target.value = Math.max(0, parseInt(e.target.value))
-              .toString()
-              .slice(0, 4);
-          }
-        }}
       />
-      <br></br>
+      <br />
     </>
   );
 };

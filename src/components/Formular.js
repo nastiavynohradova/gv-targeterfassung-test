@@ -1,89 +1,401 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Avatar from '@material-ui/core/Avatar';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemText from '@material-ui/core/ListItemText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Dialog from '@material-ui/core/Dialog';
-import PersonIcon from '@material-ui/icons/Person';
-import AddIcon from '@material-ui/icons/Add';
-import Typography from '@material-ui/core/Typography';
-import { blue } from '@material-ui/core/colors';
+import {
+  Box,
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Snackbar,
+  SnackbarContent,
+  Typography,
+  makeStyles,
+  Dialog,
+} from "@material-ui/core";
+import TextField from "@material-ui/core/TextField";
+import Attribute from "./Attribute";
+import React, { useEffect, useState, useRef } from "react";
+import Buttons from "./Buttons";
+import { openDatabase, addSubmission, getAllSubmissions } from "../db";
+import JSZip from "jszip";
 
-const emails = ['username@gmail.com', 'user02@gmail.com'];
-const useStyles = makeStyles({
-  avatar: {
-    backgroundColor: blue[100],
-    color: blue[600],
+const useStyles = makeStyles((theme) => ({
+  title: {
+    fontWeight: "bold",
+    fontSize: "1.2rem", // Adjust the font size
+    marginBottom: "5px", // Add some spacing below titles
   },
-});
+  textField: {
+    marginBottom: "1px", // Add margin to text fields
+  },
+}));
 
-export const SimpleDialog = (props) => {
+export const SimpleDialog = (props, ref) => {
   const classes = useStyles();
+  const [formData, setFormData] = useState({
+    streckennummer: "",
+    km: "",
+    seite: false,
+    sonstiges: "",
+    gvp: "",
+    photo: null,
+  });
   const { onClose, selectedValue, open } = props;
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [submissions, setSubmissions] = useState([]); // Store all submissions
+  const [successOpen, setSuccessOpen] = useState(false);
 
   const handleClose = () => {
-    onClose(selectedValue);
+    props.onClose(props.selectedValue);
+    props.setFormOpen(false);
   };
 
   const handleListItemClick = (value) => {
     onClose(value);
   };
 
-  return (
-    <Dialog onClose={handleClose} aria-labelledby="simple-dialog-title" open={open}>
-      <DialogTitle id="simple-dialog-title">Set backup account</DialogTitle>
-      <List>
-        {emails.map((email) => (
-          <ListItem button onClick={() => handleListItemClick(email)} key={email}>
-            <ListItemAvatar>
-              <Avatar className={classes.avatar}>
-                <PersonIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText primary={email} />
-          </ListItem>
-        ))}
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
-        <ListItem autoFocus button onClick={() => handleListItemClick('addAccount')}>
-          <ListItemAvatar>
-            <Avatar>
-              <AddIcon />
-            </Avatar>
-          </ListItemAvatar>
-          <ListItemText primary="Add account" />
-        </ListItem>
-      </List>
+  const [currentDate, setCurrentDate] = useState("");
+
+  useEffect(() => {
+    setCurrentDate(new Date().toISOString().slice(0, 10));
+  }, [currentDate, setCurrentDate]);
+
+  const handlePhotoChange = (e) => {
+    const photo = e.target.files[0];
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      photo,
+    }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      km: "",
+      met: "",
+      seite: "",
+      sonstiges: "",
+      punktnummer: "",
+      gvp: "",
+      photo: null,
+    });
+  };
+
+  const reff = useRef(null);
+
+  const handleErrorClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setErrorMessage("");
+  };
+
+  const handleSuccessClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSuccessMessage("");
+  };
+
+  const handleSubmit = () => {
+    // Check if a photo is selected
+    if (!formData.photo) {
+      setErrorMessage("Bitte wählen Sie ein Foto aus, bevor Sie fortfahren.");
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    // Clear the error message if a photo is selected
+    setErrorMessage("");
+    setSuccessMessage("Erfolgreich hinzugefügt");
+    // Reset the form after a successful submission
+    resetForm();
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const base64Photo = event.target.result;
+      const maxSizeInBytes = 0.5 * 1024 * 1024; // 0.5 MB
+      let quality = 0.9;
+
+      const image = new Image();
+      image.src = base64Photo;
+
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = image.width;
+        canvas.height = image.height;
+
+        ctx.drawImage(image, 0, 0, image.width, image.height);
+        // Convert the canvas content to a data URL with JPEG format
+        let compressedPhoto = canvas.toDataURL("image/jpeg", quality);
+
+        while (compressedPhoto.length > maxSizeInBytes && quality >= 0.1) {
+          // Reduce quality and recompress
+          quality -= 0.1;
+          compressedPhoto = canvas.toDataURL("image/jpeg", quality);
+        }
+
+        if (compressedPhoto.length <= maxSizeInBytes) {
+          // Append new submission to the array
+          const newSubmission = {
+            streckennummer: formData.streckennummer,
+            km: formData.km,
+            met: formData.met,
+            seite: formData.seite,
+            sonstiges: formData.sonstiges,
+            punktnummer: formData.punktnummer,
+            gvp: formData.gvp,
+            currentDate: currentDate,
+            photo: compressedPhoto,
+          };
+          // Save to IndexedDB each time the user submits
+          openDatabase()
+            .then((db) => {
+              addSubmission(db, newSubmission)
+                .then(() => {
+                  // Fetch updated submissions
+                  getAllSubmissions(db)
+                    .then((data) => {
+                      setSubmissions(data);
+                      setSuccessMessage("Erfolgreich hinzugefügt");
+                      setSuccessOpen(true);
+                    })
+                    .catch((error) =>
+                      console.error("Error fetching submissions: ", error)
+                    );
+                })
+                .catch((error) =>
+                  console.error("Error adding submission: ", error)
+                );
+            })
+            .catch((error) => console.error("Error opening database: ", error));
+        } else {
+          console.error("Compressed photo size is still too large.");
+          // Handle the situation where the photo can't be compressed to the desired size.
+        }
+      };
+    };
+    reader.readAsDataURL(formData.photo);
+    reff.current.value = "";
+  };
+
+  const downloadCombinedTodayData = () => {
+    const zip = new JSZip();
+    const todaySubmissions = submissions.filter(
+      (entry) => entry.currentDate === currentDate
+    );
+
+    // Add the CSV data to the ZIP file
+    const csvContent =
+      "Streckennummer;Kilometrierung; Seite; Sonstiges; Punktnummer; GVP Länge; Datum\n" +
+      todaySubmissions
+        .map((entry) => {
+          const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
+            minimumFractionDigits: 2,
+          });
+          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.punktnummer};${gvpInMeters};${currentDate}`;
+        })
+        .join("\n");
+
+    zip.file(`${currentDate}.csv`, csvContent);
+
+    // Add the image files to the ZIP file
+    todaySubmissions.forEach((el, index) => {
+      const date = el.currentDate.replace(/-/g, "");
+      const filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.punktnummer}_${date}.jpg`;
+      const base64Data = el.photo.split(",")[1];
+      zip.file(filename, base64Data, { base64: true });
+    });
+
+    // Create and trigger a download link for the ZIP file
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      const cur_date = new Date().toISOString().slice(0, 10);
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${cur_date}.zip`;
+      setTimeout(() => {
+        link.click();
+      }, 100);
+    });
+  };
+
+  const downloadCombinedData = () => {
+    const zip = new JSZip();
+    // Add the CSV data to the ZIP file
+    const csvContent =
+      "Streckennummer;Kilometrierung; Seite; Sonstiges; Punktnummer; GVP Länge; Datum\n" +
+      submissions
+        .map((entry) => {
+          const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
+            minimumFractionDigits: 2,
+          });
+          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.punktnummer};${gvpInMeters};${entry.currentDate}`;
+        })
+        .join("\n");
+
+    zip.file("alle_daten.csv", csvContent);
+
+    // Add the image files to the ZIP file
+    submissions.forEach((el, index) => {
+      const date = el.currentDate.replace(/-/g, "");
+      const filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.punktnummer}_${date}.jpg`;
+      const base64Data = el.photo.split(",")[1];
+      zip.file(filename, base64Data, { base64: true });
+    });
+
+    // Create and trigger a download link for the ZIP file
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "combined_data.zip";
+      setTimeout(() => {
+        link.click();
+      }, 100);
+    });
+  };
+
+  return (
+    <Dialog open={props.open} onClose={props.onClose}>
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        maxWidth="400px"
+        margin="0 auto"
+        padding="20px"
+        border="1px solid #ccc"
+        borderRadius="8px"
+        boxShadow="0 0 5px rgba(0, 0, 0, 0.2)"
+      >
+        <Attribute
+          name="Streckennummer"
+          value={formData.streckennummer}
+          setValue={setFormData}
+        />
+        {/* <Attribute value={km} setValue={setKm} name="Km" /> */}
+        <Typography variant="h6" className={classes.title}>
+          Kilometrierung
+        </Typography>
+        <Box display="flex" flexDirection="row" alignItems="center">
+          <TextField
+            required
+            style={{ marginRight: "5px" }}
+            id="km"
+            name="km"
+            placeholder="z.B. 145"
+            onChange={handleInputChange}
+          />
+          <Typography>, </Typography>
+          <TextField
+            required
+            style={{ marginLeft: "5px" }}
+            id="met"
+            name="met"
+            placeholder="02"
+            onChange={handleInputChange}
+          />
+        </Box>
+        <br></br>
+        <Typography variant="h6" className={classes.title}>
+          Seite
+        </Typography>
+
+        <Box display="flex" flexDirection="row" alignItems="center">
+          <FormControl component="fieldset">
+            <RadioGroup row required id="seite" name="seite">
+              <FormControlLabel value="L" control={<Radio />} label="L" />
+              <FormControlLabel value="R" control={<Radio />} label="R" />
+            </RadioGroup>
+          </FormControl>
+
+          <TextField
+            fullWidth
+            label="Sonstiges"
+            id="sonstiges"
+            name="sonstiges"
+          />
+        </Box>
+        <br></br>
+        <Attribute
+          name="Punktnummer"
+          value={formData.punktnummer}
+          setValue={setFormData}
+        />
+        <br></br>
+        <Attribute
+          name="GVP Länge, mm"
+          value={formData.gvp}
+          setValue={setFormData}
+        />
+        <br></br>
+        <Typography variant="h6" className={classes.title}>
+          Datum
+        </Typography>
+        <br></br>
+        <TextField
+          required
+          fullWidth
+          name="currentDate"
+          placeholder="z.B. 2023-10-20"
+          value={currentDate}
+          onChange={(e) => {
+            setCurrentDate(e.target.value);
+          }}
+          margin="normal"
+        />
+        <br></br>
+        <Typography variant="h6" className={classes.title}>
+          Foto hochladen
+        </Typography>
+
+        <input
+          ref={(el) => (reff.current = el)}
+          required
+          type="file"
+          name="photo"
+          accept="image/*;capture=camera"
+          onChange={handlePhotoChange}
+        />
+      </Box>
+      <Buttons
+        handleSubmit={handleSubmit}
+        downloadCombinedData={downloadCombinedData}
+        downloadCombinedTodayData={downloadCombinedTodayData}
+      />
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={handleSuccessClose}
+      >
+        <SnackbarContent
+          message={successMessage}
+          /*           className={classes.successSnackbar} */
+        />
+      </Snackbar>
+
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={handleErrorClose}
+      >
+        <SnackbarContent
+          message={errorMessage}
+          /*           className={classes.errorSnackbar} */
+        />
+      </Snackbar>
     </Dialog>
   );
-}
+};
 
-
-export default function SimpleDialogDemo() {
-  const [open, setOpen] = React.useState(false);
-  const [selectedValue, setSelectedValue] = React.useState(emails[1]);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = (value) => {
-    setOpen(false);
-    setSelectedValue(value);
-  };
-
-  return (
-    <div>
-      <Typography variant="subtitle1">Selected: {selectedValue}</Typography>
-      <br />
-      <Button variant="outlined" color="primary" onClick={handleClickOpen}>
-        Open simple dialog
-      </Button>
-      <SimpleDialog selectedValue={selectedValue} open={open} onClose={handleClose} />
-    </div>
-  );
-}
+export default SimpleDialog;

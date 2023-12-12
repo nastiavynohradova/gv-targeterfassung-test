@@ -10,7 +10,12 @@ const handleCSVFile = (file, setImportData, setColNames) => {
     complete: (result) => {
       const name = file.name ? file.name.split(".").at(0) : "";
       setImportData([
-        ...result.data.map((el, idx) => ({ ...el, id: idx, Streckennummer: name, gvp: "" })),
+        ...result.data.map((el, idx) => ({
+          ...el,
+          id: idx,
+          Streckennummer: name,
+          gvp: "",
+        })),
       ]);
       setColNames([...result.meta.fields, "Streckennummer", "gvp"]);
     },
@@ -52,14 +57,14 @@ const useStyles = makeStyles((theme) => ({
 
 const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
+  const [formOpen, setFormOpen] = useState(false);
 
   const handleClickOpen = () => {
-    setOpen(true);
+    setFormOpen(true);
   };
 
   const handleClose = (value) => {
-    setOpen(false);
+    setFormOpen(false);
   };
 
   const handleFileChange = (event) => {
@@ -94,21 +99,24 @@ const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
             >
               Koordinatendatei hochladen
             </Button>
-            
           </label>
         </Box>
         <Box>
-        <Button
-              variant="contained"
-              startIcon={<OpenInBrowser />}
-              color="secondary"
-              className={classes.button}
-              component="span"
-              onClick={handleClickOpen}
-            >
-              Formular öffnen
-            </Button>
-            <SimpleDialog selectedValue={""} open={open} onClose={handleClose} />
+          <Button
+            variant="contained"
+            startIcon={<OpenInBrowser />}
+            color="secondary"
+            className={classes.button}
+            component="span"
+            onClick={handleClickOpen}
+          >
+            Formular öffnen
+          </Button>
+          <SimpleDialog
+            selectedValue={""}
+            open={formOpen}
+            onClose={handleClose}
+          />
         </Box>
       </Paper>
     </Box>
