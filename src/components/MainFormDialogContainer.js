@@ -1,5 +1,6 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
+import Button from "./Buttons";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Dialog from "@material-ui/core/Dialog";
 import Paper from "@material-ui/core/Paper";
@@ -35,7 +36,7 @@ function SimpleDialog({
   selectedValue,
   open,
   reff,
-  setImportData
+  setImportData,
 }) {
   const classes = useStyles();
   const handleClose = () => {
@@ -62,13 +63,8 @@ function SimpleDialog({
         Formular
       </DialogTitle>
       <Paper elevation={3} className={classes.paper}>
-        <MainForm
-          row={row}
-          reff={reff}
-          setImportData={setImportData}
-        />
+        <MainForm row={row} reff={reff} setImportData={setImportData} />
       </Paper>
-
     </Dialog>
   );
 }
@@ -77,7 +73,7 @@ const MainFormDialogContainer = ({
   row,
   reff,
   selectedRowData,
-  setImportData
+  setImportData,
 }) => {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
@@ -92,26 +88,28 @@ const MainFormDialogContainer = ({
   };
 
   return (
-    <div className={classes.buttonContainer}>
-      <IconButton
-        aria-label="edit"
-        onClick={() => handleClickOpen()}
-        className={classes.button}
-      >
-        Bearbeiten
-        <EditIcon />
-      </IconButton>
-      <SimpleDialog
-        row={row}
-        selectedValue={selectedValue}
-        open={open}
-        onClose={handleClose}
-        reff={reff}
-        selectedRowData={selectedRowData}
-        setImportData={setImportData}
-      />
-    </div>
+    <>
+      <div className={classes.buttonContainer}>
+        <IconButton
+          aria-label="edit"
+          onClick={() => handleClickOpen()}
+          className={classes.button}
+        >
+          Bearbeiten
+          <EditIcon />
+        </IconButton>
+        <SimpleDialog
+          row={row}
+          selectedValue={selectedValue}
+          open={open}
+          onClose={handleClose}
+          reff={reff}
+          selectedRowData={selectedRowData}
+          setImportData={setImportData}
+        />
+      </div>
+    </>
   );
-}
+};
 
 export default MainFormDialogContainer;

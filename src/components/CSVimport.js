@@ -4,6 +4,7 @@ import { Box, Button, Input, Typography, Paper } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { CloudUpload, OpenInBrowser } from "@material-ui/icons";
 import { SimpleDialog } from "./Formular";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 
 const handleCSVFile = (file, setImportData, setColNames) => {
   Papa.parse(file, {
@@ -14,10 +15,10 @@ const handleCSVFile = (file, setImportData, setColNames) => {
           ...el,
           id: idx,
           Streckennummer: name,
-          gvp: "",
+          "GVP Länge": "",
         })),
       ]);
-      setColNames([...result.meta.fields, "Streckennummer", "gvp"]);
+      setColNames([...result.meta.fields, "Streckennummer", "GVP Länge"]);
     },
     header: true,
     encoding: "ISO-8859-1",
@@ -58,6 +59,7 @@ const useStyles = makeStyles((theme) => ({
 const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
   const classes = useStyles();
   const [formOpen, setFormOpen] = useState(false);
+  const [showDownloadButton, setShowDownloadButton] = useState(false);
 
   const handleClickOpen = () => {
     setFormOpen(true);
@@ -72,13 +74,14 @@ const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
     if (file) {
       handleCSVFile(file, setImportData, setColNames);
       setShowTable(true);
+      setShowDownloadButton(true);
     }
   };
 
   return (
     <Box>
       <Paper className={classes.header} elevation={3}>
-        <Typography variant="h4">Die GV-Targeterfassung</Typography>
+        <Typography variant="h4">GV-Targeterfassung</Typography>
       </Paper>
       <Paper className={classes.content} elevation={3}>
         <Box className={classes.buttonContainer}>
@@ -118,6 +121,18 @@ const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
             onClose={handleClose}
           />
         </Box>
+        {showDownloadButton && ( // Conditionally render the download button
+          <Paper className={classes.content} elevation={3}>
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.button}
+              startIcon={<CloudDownloadIcon />}
+            >
+              Tabelle herunterladen
+            </Button>
+          </Paper>
+        )}
       </Paper>
     </Box>
   );

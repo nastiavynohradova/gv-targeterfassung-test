@@ -38,6 +38,15 @@ export const SimpleDialog = (props, ref) => {
     gvp: "",
     photo: null,
   });
+  // Separate state for each attribute
+  const [streckennummer, setStreckennummer] = useState("");
+  const [km, setKm] = useState("");
+  const [met, setMet] = useState("");
+  const [seite, setSeite] = useState(false);
+  const [sonstiges, setSonstiges] = useState("");
+  const [punktnummer, setPunktnummer] = useState("");
+  const [gvp, setGVP] = useState("");
+  const [photo, setPhoto] = useState(null);
   const { onClose, selectedValue, open } = props;
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -146,13 +155,13 @@ export const SimpleDialog = (props, ref) => {
         if (compressedPhoto.length <= maxSizeInBytes) {
           // Append new submission to the array
           const newSubmission = {
-            streckennummer: formData.streckennummer,
-            km: formData.km,
-            met: formData.met,
-            seite: formData.seite,
-            sonstiges: formData.sonstiges,
-            punktnummer: formData.punktnummer,
-            gvp: formData.gvp,
+            streckennummer: streckennummer,
+            km: km,
+            met: met,
+            seite: seite,
+            sonstiges: sonstiges,
+            punktnummer: punktnummer,
+            gvp: gvp,
             currentDate: currentDate,
             photo: compressedPhoto,
           };
@@ -280,30 +289,31 @@ export const SimpleDialog = (props, ref) => {
       >
         <Attribute
           name="Streckennummer"
-          value={formData.streckennummer}
-          setValue={setFormData}
+          value={streckennummer}
+          setValue={setStreckennummer}
         />
-        {/* <Attribute value={km} setValue={setKm} name="Km" /> */}
         <Typography variant="h6" className={classes.title}>
           Kilometrierung
         </Typography>
         <Box display="flex" flexDirection="row" alignItems="center">
           <TextField
             required
+            value={km}
             style={{ marginRight: "5px" }}
             id="km"
             name="km"
             placeholder="z.B. 145"
-            onChange={handleInputChange}
+            onChange={(e) => setKm(e.target.value)}
           />
           <Typography>, </Typography>
           <TextField
             required
+            value={met}
             style={{ marginLeft: "5px" }}
             id="met"
             name="met"
             placeholder="02"
-            onChange={handleInputChange}
+            onChange={(e) => setMet(e.target.value)}
           />
         </Box>
         <br></br>
@@ -313,7 +323,14 @@ export const SimpleDialog = (props, ref) => {
 
         <Box display="flex" flexDirection="row" alignItems="center">
           <FormControl component="fieldset">
-            <RadioGroup row required id="seite" name="seite">
+            <RadioGroup
+              row
+              required
+              id="seite"
+              name="seite"
+              value={seite}
+              onChange={(e) => setSeite(e.target.value)}
+            >
               <FormControlLabel value="L" control={<Radio />} label="L" />
               <FormControlLabel value="R" control={<Radio />} label="R" />
             </RadioGroup>
@@ -321,6 +338,8 @@ export const SimpleDialog = (props, ref) => {
 
           <TextField
             fullWidth
+            value={sonstiges}
+            onChange={(e) => setSonstiges(e.target.value)}
             label="Sonstiges"
             id="sonstiges"
             name="sonstiges"
@@ -329,15 +348,11 @@ export const SimpleDialog = (props, ref) => {
         <br></br>
         <Attribute
           name="Punktnummer"
-          value={formData.punktnummer}
-          setValue={setFormData}
+          value={punktnummer}
+          setValue={setPunktnummer}
         />
         <br></br>
-        <Attribute
-          name="GVP Länge, mm"
-          value={formData.gvp}
-          setValue={setFormData}
-        />
+        <Attribute name="GVP Länge, mm" value={gvp} setValue={setGVP} />
         <br></br>
         <Typography variant="h6" className={classes.title}>
           Datum
