@@ -51,18 +51,19 @@ const MainForm = ({ reff, row, setImportData }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [submissions, setSubmissions] = useState([]); // Store all submissions
 
- useEffect(() => {
-    setImportData(state => state.map(el => {
-        if(el.id === row.id) {
+  useEffect(() => {
+    setImportData((state) =>
+      state.map((el) => {
+        if (el.id === row.id) {
           return {
             ...el,
-            gvp
-          }
+            gvp,
+          };
         }
-        return el
-    }))
-  }, [gvp])
-   
+        return el;
+      })
+    );
+  }, [gvp]);
 
   // State for displaying the success and error message
   const [successOpen, setSuccessOpen] = useState(false);
@@ -307,6 +308,20 @@ const MainForm = ({ reff, row, setImportData }) => {
       })
       .catch((error) => console.error("Error opening database: ", error));
   }, []);
+
+  const handleGvpLengthChange = (gvpLength) => {
+    setImportData((state) =>
+      state.map((el) => {
+        if (el.id === row.id) {
+          return {
+            ...el,
+            gvp: gvpLength,
+          };
+        }
+        return el;
+      })
+    );
+  };
 
   return (
     <>

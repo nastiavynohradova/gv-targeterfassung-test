@@ -5,6 +5,8 @@ import "./App.css";
 import { openDatabase } from "./db";
 import CSVimport from "./components/CSVimport";
 import TableWrapper from "./components/TableWrapper";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
+import { Button } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -44,7 +46,7 @@ const App = () => {
   const classes = useStyles();
 
   const reff = useRef(null);
-
+  const [showDownloadButton, setShowDownloadButton] = useState(false);
   const [importData, setImportData] = useState([]);
   const [colNames, setColNames] = useState([]);
   const [showTable, setShowTable] = useState(false);
@@ -81,17 +83,33 @@ const App = () => {
   return (
     <div className={classnames(classes.root, "appWrapper")}>
       <CSVimport
-        setShowTable={setShowTable}
+        setShowTable={(value) => {
+          setShowTable(value);
+          setShowDownloadButton(value); // Set showDownloadButton based on showTable
+        }}
         setImportData={setImportData}
         setColNames={setColNames}
       />
       {showTable && (
-        <TableWrapper
-          importData={importData}
-          reff={reff}
-          setImportData={setImportData}
-          colNames={colNames}
-        />
+        <>
+          <TableWrapper
+            importData={importData}
+            reff={reff}
+            setImportData={setImportData}
+            colNames={colNames}
+          />
+          {showDownloadButton && ( // Conditionally render the download button
+            <Button
+              variant="contained"
+              color="primary"
+              style={{ height: "50px", marginTop: "10px" }}
+              className={classes.button}
+              startIcon={<CloudDownloadIcon />}
+            >
+              Tabelle herunterladen
+            </Button>
+          )}
+        </>
       )}
     </div>
   );

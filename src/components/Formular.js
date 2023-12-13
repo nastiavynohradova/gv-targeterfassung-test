@@ -31,11 +31,6 @@ const useStyles = makeStyles((theme) => ({
 export const SimpleDialog = (props, ref) => {
   const classes = useStyles();
   const [formData, setFormData] = useState({
-    streckennummer: "",
-    km: "",
-    seite: false,
-    sonstiges: "",
-    gvp: "",
     photo: null,
   });
   // Separate state for each attribute
@@ -53,23 +48,6 @@ export const SimpleDialog = (props, ref) => {
   const [submissions, setSubmissions] = useState([]); // Store all submissions
   const [successOpen, setSuccessOpen] = useState(false);
 
-  const handleClose = () => {
-    props.onClose(props.selectedValue);
-    props.setFormOpen(false);
-  };
-
-  const handleListItemClick = (value) => {
-    onClose(value);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
@@ -78,7 +56,7 @@ export const SimpleDialog = (props, ref) => {
 
   const handlePhotoChange = (e) => {
     const photo = e.target.files[0];
-    setFormData((prevFormData) => ({
+    setPhoto((prevFormData) => ({
       ...prevFormData,
       photo,
     }));
@@ -114,7 +92,7 @@ export const SimpleDialog = (props, ref) => {
 
   const handleSubmit = () => {
     // Check if a photo is selected
-    if (!formData.photo) {
+    if (!photo) {
       setErrorMessage("Bitte wählen Sie ein Foto aus, bevor Sie fortfahren.");
       setSuccessMessage(""); // Clear any existing success message
       return;
