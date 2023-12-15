@@ -36,6 +36,7 @@ const Attribute = ({ value, setValue, name }) => {
         value={value}
         onChange={handleInputChange}
         margin="normal"
+        inputProps={{ style: { textAlign: "center" } }}
       />
       <br />
     </>

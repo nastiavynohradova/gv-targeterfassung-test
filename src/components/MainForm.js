@@ -57,13 +57,15 @@ const MainForm = ({ reff, row, setImportData }) => {
         if (el.id === row.id) {
           return {
             ...el,
-            gvp,
+            "GVP Länge": gvp,
           };
         }
         return el;
       })
     );
-  }, [gvp]);
+  }, [gvp, row.id, setImportData]);
+
+  console.log(row);
 
   // State for displaying the success and error message
   const [successOpen, setSuccessOpen] = useState(false);
@@ -81,7 +83,6 @@ const MainForm = ({ reff, row, setImportData }) => {
         const [kmValue, meterValue] = row["Km-Station Ist"].split(",");
         setKm(kmValue);
         setMet(meterValue);
-        console.log(kmValue);
       }
       if (row.Seite) {
         setSeite(row.Seite);
@@ -309,20 +310,6 @@ const MainForm = ({ reff, row, setImportData }) => {
       .catch((error) => console.error("Error opening database: ", error));
   }, []);
 
-  const handleGvpLengthChange = (gvpLength) => {
-    setImportData((state) =>
-      state.map((el) => {
-        if (el.id === row.id) {
-          return {
-            ...el,
-            gvp: gvpLength,
-          };
-        }
-        return el;
-      })
-    );
-  };
-
   return (
     <>
       <Box
@@ -355,6 +342,7 @@ const MainForm = ({ reff, row, setImportData }) => {
             placeholder="z.B. 145"
             value={km}
             onChange={handleInputChange}
+            inputProps={{ style: { textAlign: "center" } }}
           />
           <Typography>, </Typography>
           <TextField
@@ -365,6 +353,7 @@ const MainForm = ({ reff, row, setImportData }) => {
             placeholder="02"
             value={met}
             onChange={handleInputChange}
+            inputProps={{ style: { textAlign: "center" } }}
           />
         </Box>
         <br></br>
@@ -394,6 +383,10 @@ const MainForm = ({ reff, row, setImportData }) => {
             name="sonstiges"
             value={sonstiges}
             onChange={(e) => setSonstiges(e.target.value)}
+            inputProps={{ style: { textAlign: "center" } }}
+            InputLabelProps={{
+              style: { textAlign: "center", width: "100%", marginLeft: "0" },
+            }}
           />
         </Box>
         <br></br>
@@ -419,6 +412,7 @@ const MainForm = ({ reff, row, setImportData }) => {
             setCurrentDate(e.target.value);
           }}
           margin="normal"
+          inputProps={{ style: { textAlign: "center" } }}
         />
         <br></br>
         <Typography variant="h6" className={classes.title}>

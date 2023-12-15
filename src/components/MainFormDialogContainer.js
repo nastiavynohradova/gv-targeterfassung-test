@@ -49,19 +49,6 @@ function SimpleDialog({
       aria-labelledby="simple-dialog-title"
       open={open}
     >
-      <DialogTitle
-        id="simple-dialog-title"
-        className={classes.buttonContainer}
-        style={{
-          textAlign: "center",
-          marginBottom: 16,
-          fontWeight: "bold",
-          fontSize: "6rem",
-          color: "#007bff",
-        }}
-      >
-        Formular
-      </DialogTitle>
       <Paper elevation={3} className={classes.paper}>
         <MainForm row={row} reff={reff} setImportData={setImportData} />
       </Paper>

@@ -261,6 +261,7 @@ export const SimpleDialog = (props, ref) => {
         maxWidth="400px"
         margin="0 auto"
         padding="20px"
+        marginTop="10px"
         border="1px solid #ccc"
         borderRadius="8px"
         boxShadow="0 0 5px rgba(0, 0, 0, 0.2)"
@@ -282,6 +283,7 @@ export const SimpleDialog = (props, ref) => {
             name="km"
             placeholder="z.B. 145"
             onChange={(e) => setKm(e.target.value)}
+            inputProps={{ style: { textAlign: "center" } }}
           />
           <Typography>, </Typography>
           <TextField
@@ -292,6 +294,7 @@ export const SimpleDialog = (props, ref) => {
             name="met"
             placeholder="02"
             onChange={(e) => setMet(e.target.value)}
+            inputProps={{ style: { textAlign: "center" } }}
           />
         </Box>
         <br></br>
@@ -321,6 +324,10 @@ export const SimpleDialog = (props, ref) => {
             label="Sonstiges"
             id="sonstiges"
             name="sonstiges"
+            InputLabelProps={{
+              style: { textAlign: "center", width: "100%", marginLeft: "0" },
+            }}
+            inputProps={{ style: { textAlign: "center" } }}
           />
         </Box>
         <br></br>
@@ -346,6 +353,7 @@ export const SimpleDialog = (props, ref) => {
             setCurrentDate(e.target.value);
           }}
           margin="normal"
+          inputProps={{ style: { textAlign: "center" } }}
         />
         <br></br>
         <Typography variant="h6" className={classes.title}>

@@ -51,8 +51,6 @@ const App = () => {
   const [colNames, setColNames] = useState([]);
   const [showTable, setShowTable] = useState(false);
 
-  console.log(importData);
-
   useEffect(() => {
     const clearDatabaseEvery2Weeks = async () => {
       try {
@@ -73,12 +71,49 @@ const App = () => {
     // Schedule the first interval to start at the next midnight and repeat every 14 days at midnight
     const interval = 14 * 24 * 60 * 60 * 1000 + timeUntilMidnight;
     const intervalId = setInterval(clearDatabaseEvery2Weeks, interval);
+    console.log(interval);
 
     // Cleanup the interval when the component unmounts
     return () => {
       clearInterval(intervalId);
     };
   }, []);
+
+  const convertToCSV = (importData) => {
+    // Ensure data is not empty
+    if (!importData || importData.length === 0) {
+      return "";
+    }
+
+    // Extract column names
+    const columns = Object.keys(importData[0]);
+
+    // Create header row
+    const headerRow = columns.join(";");
+
+    // Create data rows
+    const dataRows = importData.map((row) =>
+      columns.map((column) => row[column]).join(";")
+    );
+
+    // Combine header and data rows
+    const csvContent = [headerRow, ...dataRows].join("\n");
+
+    return csvContent;
+  };
+
+  const handleDownload = () => {
+    const csvContent = convertToCSV(importData);
+
+    // Create a Blob and create a download link
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "table_data.csv";
+
+    // Simulate a click to trigger the download
+    link.click();
+  };
 
   return (
     <div className={classnames(classes.root, "appWrapper")}>
@@ -105,6 +140,7 @@ const App = () => {
               style={{ height: "50px", marginTop: "10px" }}
               className={classes.button}
               startIcon={<CloudDownloadIcon />}
+              onClick={handleDownload}
             >
               Tabelle herunterladen
             </Button>

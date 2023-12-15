@@ -9,15 +9,28 @@ const handleCSVFile = (file, setImportData, setColNames) => {
   Papa.parse(file, {
     complete: (result) => {
       const name = file.name ? file.name.split(".").at(0) : "";
-      setImportData([
-        ...result.data.map((el, idx) => ({
-          ...el,
-          id: idx,
-          Streckennummer: name,
-          "GVP Länge": "",
-        })),
-      ]);
-      setColNames([...result.meta.fields, "Streckennummer", "GVP Länge"]);
+
+      // Check if there are data rows in the result
+      if (result.data && result.data.length > 0) {
+        const headerRow = Object.keys(result.data[0]);
+
+        // Exclude the last row if it is empty
+        const dataRows = result.data.slice(0, -1);
+
+        setImportData([
+          ...dataRows.map((el, idx) => ({
+            id: idx,
+            ...el,
+            Streckennummer: name,
+            "GVP Länge": "",
+          })),
+        ]);
+
+        setColNames([...headerRow, "Streckennummer", "GVP Länge"]);
+      } else {
+        console.error("CSV file is empty or missing data.");
+        // Handle the case when the CSV file is empty or missing data
+      }
     },
     header: true,
     encoding: "ISO-8859-1",
@@ -58,6 +71,8 @@ const useStyles = makeStyles((theme) => ({
 const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
   const classes = useStyles();
   const [formOpen, setFormOpen] = useState(false);
+  const [fileSelected, setFileSelected] = useState(false);
+  const [invalidFileType, setInvalidFileType] = useState(false);
 
   const handleClickOpen = () => {
     setFormOpen(true);
@@ -69,9 +84,23 @@ const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
+
+    // Check if a file is selected
     if (file) {
-      handleCSVFile(file, setImportData, setColNames);
-      setShowTable(true);
+      // Check if the selected file is a CSV file
+      if (file.type === "text/csv" || file.name.endsWith(".csv")) {
+        handleCSVFile(file, setImportData, setColNames);
+        setShowTable(true);
+        setFileSelected(true);
+        setInvalidFileType(false); // Reset the invalid file type state
+      } else {
+        // Set the state to indicate an invalid file type
+        setInvalidFileType(true);
+        setFileSelected(false);
+      }
+    } else {
+      setFileSelected(false);
+      setInvalidFileType(false); // Reset the invalid file type state
     }
   };
 
@@ -100,6 +129,11 @@ const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
               Koordinatendatei hochladen
             </Button>
           </label>
+          {invalidFileType && (
+            <Typography variant="body2" color="error">
+              Wählen Sie eine CSV Datei
+            </Typography>
+          )}
         </Box>
         <Box>
           <Button
