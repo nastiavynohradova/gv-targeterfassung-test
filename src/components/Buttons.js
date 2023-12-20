@@ -38,7 +38,7 @@ const Buttons = ({
         endIcon={<SendIcon />}
         onClick={handleSubmit}
       >
-        Abschicken
+        Abspeichern
       </Button>
       <br />
       <br />

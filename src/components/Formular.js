@@ -16,6 +16,9 @@ import React, { useEffect, useState, useRef } from "react";
 import Buttons from "./Buttons";
 import { openDatabase, addSubmission, getAllSubmissions } from "../db";
 import JSZip from "jszip";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
+import InputLabel from "@material-ui/core/InputLabel";
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -39,7 +42,8 @@ export const SimpleDialog = (props, ref) => {
   const [met, setMet] = useState("");
   const [seite, setSeite] = useState(false);
   const [sonstiges, setSonstiges] = useState("");
-  const [punktnummer, setPunktnummer] = useState("");
+  const [mastnummer, setMastnummer] = useState("");
+  const [vermarkung, setVermarkung] = React.useState("");
   const [gvp, setGVP] = useState("");
   const [photo, setPhoto] = useState(null);
   const { onClose, selectedValue, open } = props;
@@ -47,6 +51,7 @@ export const SimpleDialog = (props, ref) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [submissions, setSubmissions] = useState([]); // Store all submissions
   const [successOpen, setSuccessOpen] = useState(false);
+  const [isMastnummerFilled, setIsMastnummerFilled] = useState(false);
 
   const [currentDate, setCurrentDate] = useState("");
 
@@ -55,11 +60,8 @@ export const SimpleDialog = (props, ref) => {
   }, [currentDate, setCurrentDate]);
 
   const handlePhotoChange = (e) => {
-    const photo = e.target.files[0];
-    setPhoto((prevFormData) => ({
-      ...prevFormData,
-      photo,
-    }));
+    const photoFile = e.target.files[0];
+    setPhoto(photoFile);
   };
 
   const resetForm = () => {
@@ -68,7 +70,7 @@ export const SimpleDialog = (props, ref) => {
       met: "",
       seite: "",
       sonstiges: "",
-      punktnummer: "",
+      mastnummer: "",
       gvp: "",
       photo: null,
     });
@@ -88,6 +90,15 @@ export const SimpleDialog = (props, ref) => {
       return;
     }
     setSuccessMessage("");
+  };
+
+  const classForm = useStyles();
+
+  const [selectedVermarkungstrager, setSelectedVermarkungstrager] =
+    useState(null);
+
+  const handleChange = (event) => {
+    setSelectedVermarkungstrager(event.target.value);
   };
 
   const handleSubmit = () => {
@@ -138,7 +149,7 @@ export const SimpleDialog = (props, ref) => {
             met: met,
             seite: seite,
             sonstiges: sonstiges,
-            punktnummer: punktnummer,
+            mastnummer: mastnummer,
             gvp: gvp,
             currentDate: currentDate,
             photo: compressedPhoto,
@@ -170,7 +181,7 @@ export const SimpleDialog = (props, ref) => {
         }
       };
     };
-    reader.readAsDataURL(formData.photo);
+    reader.readAsDataURL(photo);
     reff.current.value = "";
   };
 
@@ -332,10 +343,39 @@ export const SimpleDialog = (props, ref) => {
         </Box>
         <br></br>
         <Attribute
-          name="Punktnummer"
-          value={punktnummer}
-          setValue={setPunktnummer}
+          name="Mastnummer"
+          value={mastnummer}
+          setValue={setMastnummer}
+          disabled={selectedVermarkungstrager !== null}
         />
+
+        <br></br>
+        <Typography variant="h6" className={classes.title}>
+          Wenn keine Mastnummer, Vermarkungsträger:
+        </Typography>
+        <FormControl fullWidth>
+          <InputLabel id="demo-simple-select-label">
+            Vermarkungsträger
+          </InputLabel>
+          <Select
+            labelId="vermarkungstraeger"
+            id="vermarkungstraeger"
+            value={selectedVermarkungstrager}
+            label="Vermarkung"
+            onChange={(event) => {
+              handleChange(event);
+              setSelectedVermarkungstrager(!!event.target.value);
+            }}
+            disabled={isMastnummerFilled}
+          >
+            <MenuItem value={10}>Laterne</MenuItem>
+            <MenuItem value={20}>Wand</MenuItem>
+            <MenuItem value={30}>Fundament</MenuItem>
+            <MenuItem value={30}>Lärmschutzwand</MenuItem>
+            <MenuItem value={30}>Sonstiges</MenuItem>
+          </Select>
+        </FormControl>
+
         <br></br>
         <Attribute name="GVP Länge, mm" value={gvp} setValue={setGVP} />
         <br></br>
@@ -366,7 +406,7 @@ export const SimpleDialog = (props, ref) => {
           type="file"
           name="photo"
           accept="image/*;capture=camera"
-          onChange={handlePhotoChange}
+          onChange={(e) => handlePhotoChange(e)}
         />
       </Box>
       <Buttons
