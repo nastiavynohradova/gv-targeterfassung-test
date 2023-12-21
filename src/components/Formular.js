@@ -51,7 +51,7 @@ export const SimpleDialog = (props, ref) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [submissions, setSubmissions] = useState([]); // Store all submissions
   const [successOpen, setSuccessOpen] = useState(false);
-  const [isMastnummerFilled, setIsMastnummerFilled] = useState(false);
+  const [isMastnummerDisabled, setIsMastnummerDisabled] = useState(false);
 
   const [currentDate, setCurrentDate] = useState("");
 
@@ -65,15 +65,16 @@ export const SimpleDialog = (props, ref) => {
   };
 
   const resetForm = () => {
-    setFormData({
-      km: "",
-      met: "",
-      seite: "",
-      sonstiges: "",
-      mastnummer: "",
-      gvp: "",
-      photo: null,
-    });
+    setStreckennummer("");
+    setKm("");
+    setMet("");
+    setSeite(false);
+    setSonstiges("");
+    setMastnummer("");
+    setVermarkung("");
+    setGVP("");
+    setPhoto(null);
+    setCurrentDate(new Date().toISOString().slice(0, 10));
   };
 
   const reff = useRef(null);
@@ -92,6 +93,14 @@ export const SimpleDialog = (props, ref) => {
     setSuccessMessage("");
   };
 
+  const vermarkungOptions = [
+    { value: 10, label: "Laterne" },
+    { value: 20, label: "Wand" },
+    { value: 30, label: "Fundament" },
+    { value: 40, label: "Lärmschutzwand" },
+    { value: 50, label: "Sonstiges" },
+  ];
+
   const classForm = useStyles();
 
   const [selectedVermarkungstrager, setSelectedVermarkungstrager] =
@@ -99,6 +108,10 @@ export const SimpleDialog = (props, ref) => {
 
   const handleChange = (event) => {
     setSelectedVermarkungstrager(event.target.value);
+    setIsMastnummerDisabled(!!event.target.value || !!mastnummer);
+    if (event.target.value) {
+      setMastnummer(""); // Reset Mastnummer when Vermarkungstrager is selected
+    }
   };
 
   const handleSubmit = () => {
@@ -261,6 +274,7 @@ export const SimpleDialog = (props, ref) => {
       }, 100);
     });
   };
+  console.log(selectedVermarkungstrager)
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
@@ -348,9 +362,7 @@ export const SimpleDialog = (props, ref) => {
           setValue={setMastnummer}
           disabled={selectedVermarkungstrager !== null}
         />
-
-        <br></br>
-        <Typography variant="h6" className={classes.title}>
+        <Typography variant="overline">
           Wenn keine Mastnummer, Vermarkungsträger:
         </Typography>
         <FormControl fullWidth>
@@ -358,22 +370,19 @@ export const SimpleDialog = (props, ref) => {
             Vermarkungsträger
           </InputLabel>
           <Select
-            labelId="vermarkungstraeger"
-            id="vermarkungstraeger"
-            value={selectedVermarkungstrager}
-            label="Vermarkung"
-            onChange={(event) => {
-              handleChange(event);
-              setSelectedVermarkungstrager(!!event.target.value);
-            }}
-            disabled={isMastnummerFilled}
-          >
-            <MenuItem value={10}>Laterne</MenuItem>
-            <MenuItem value={20}>Wand</MenuItem>
-            <MenuItem value={30}>Fundament</MenuItem>
-            <MenuItem value={30}>Lärmschutzwand</MenuItem>
-            <MenuItem value={30}>Sonstiges</MenuItem>
-          </Select>
+  labelId="vermarkungstraeger"
+  id="vermarkungstraeger"
+  value={selectedVermarkungstrager}
+  label="Vermarkung"
+  onChange={(event) => handleChange(event)}
+            disabled={!!mastnummer}
+>
+  {vermarkungOptions.map((option) => (
+    <MenuItem key={option.value} value={option.value}>
+      {option.label}
+    </MenuItem>
+  ))}
+</Select>
         </FormControl>
 
         <br></br>

@@ -9,7 +9,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Attribute = ({ value, setValue, name }) => {
+const Attribute = ({ value, setValue, name, disabled }) => {
   const classes = useStyles();
 
   const handleInputChange = (e) => {
@@ -31,6 +31,7 @@ const Attribute = ({ value, setValue, name }) => {
       </Typography>
       <TextField
         required
+        disabled={disabled}
         fullWidth
         name={name}
         value={value}
