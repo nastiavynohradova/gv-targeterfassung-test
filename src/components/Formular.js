@@ -25,6 +25,7 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: "bold",
     fontSize: "1.2rem", // Adjust the font size
     marginBottom: "5px", // Add some spacing below titles
+    textAlign: "center",
   },
   textField: {
     marginBottom: "1px", // Add margin to text fields
@@ -33,9 +34,6 @@ const useStyles = makeStyles((theme) => ({
 
 export const SimpleDialog = (props, ref) => {
   const classes = useStyles();
-  const [formData, setFormData] = useState({
-    photo: null,
-  });
   // Separate state for each attribute
   const [streckennummer, setStreckennummer] = useState("");
   const [km, setKm] = useState("");
@@ -43,7 +41,9 @@ export const SimpleDialog = (props, ref) => {
   const [seite, setSeite] = useState(false);
   const [sonstiges, setSonstiges] = useState("");
   const [mastnummer, setMastnummer] = useState("");
-  const [vermarkung, setVermarkung] = React.useState("");
+  const [selectedVermarkungstrager, setselectedVermarkungstrager] =
+    useState(null);
+  const [sonstiges2, setSonstiges2] = useState("");
   const [gvp, setGVP] = useState("");
   const [photo, setPhoto] = useState(null);
   const { onClose, selectedValue, open } = props;
@@ -51,8 +51,6 @@ export const SimpleDialog = (props, ref) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [submissions, setSubmissions] = useState([]); // Store all submissions
   const [successOpen, setSuccessOpen] = useState(false);
-  const [isMastnummerDisabled, setIsMastnummerDisabled] = useState(false);
-
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
@@ -71,8 +69,9 @@ export const SimpleDialog = (props, ref) => {
     setSeite(false);
     setSonstiges("");
     setMastnummer("");
-    setVermarkung("");
+    setselectedVermarkungstrager(null);
     setGVP("");
+    setSonstiges2("");
     setPhoto(null);
     setCurrentDate(new Date().toISOString().slice(0, 10));
   };
@@ -94,21 +93,17 @@ export const SimpleDialog = (props, ref) => {
   };
 
   const vermarkungOptions = [
-    { value: 10, label: "Laterne" },
-    { value: 20, label: "Wand" },
-    { value: 30, label: "Fundament" },
-    { value: 40, label: "Lärmschutzwand" },
-    { value: 50, label: "Sonstiges" },
+    { value: 10, label: "Keiner" },
+    { value: 20, label: "Laterne" },
+    { value: 30, label: "Wand" },
+    { value: 40, label: "Fundament" },
+    { value: 50, label: "Lärmschutzwand" },
+    { value: 60, label: "Widerlager" },
+    { value: 70, label: "Sonstiges" },
   ];
 
-  const classForm = useStyles();
-
-  const [selectedVermarkungstrager, setSelectedVermarkungstrager] =
-    useState(null);
-
   const handleChange = (event) => {
-    setSelectedVermarkungstrager(event.target.value);
-    setIsMastnummerDisabled(!!event.target.value || !!mastnummer);
+    setselectedVermarkungstrager(event.target.value);
     if (event.target.value) {
       setMastnummer(""); // Reset Mastnummer when Vermarkungstrager is selected
     }
@@ -126,7 +121,7 @@ export const SimpleDialog = (props, ref) => {
     setSuccessMessage("Erfolgreich hinzugefügt");
     // Reset the form after a successful submission
     resetForm();
-
+    console.log();
     const reader = new FileReader();
 
     reader.onload = (event) => {
@@ -155,6 +150,10 @@ export const SimpleDialog = (props, ref) => {
         }
 
         if (compressedPhoto.length <= maxSizeInBytes) {
+          const vermarkungLabel = vermarkungOptions.find(
+            (option) => option.value === selectedVermarkungstrager
+          ).label;
+
           // Append new submission to the array
           const newSubmission = {
             streckennummer: streckennummer,
@@ -163,6 +162,8 @@ export const SimpleDialog = (props, ref) => {
             seite: seite,
             sonstiges: sonstiges,
             mastnummer: mastnummer,
+            selectedVermarkungstrager: vermarkungLabel,
+            sonstiges2: sonstiges2,
             gvp: gvp,
             currentDate: currentDate,
             photo: compressedPhoto,
@@ -206,13 +207,13 @@ export const SimpleDialog = (props, ref) => {
 
     // Add the CSV data to the ZIP file
     const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Punktnummer; GVP Länge; Datum\n" +
+      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge; Datum\n" +
       todaySubmissions
         .map((entry) => {
           const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
             minimumFractionDigits: 2,
           });
-          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.punktnummer};${gvpInMeters};${currentDate}`;
+          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${currentDate}`;
         })
         .join("\n");
 
@@ -221,7 +222,22 @@ export const SimpleDialog = (props, ref) => {
     // Add the image files to the ZIP file
     todaySubmissions.forEach((el, index) => {
       const date = el.currentDate.replace(/-/g, "");
-      const filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.punktnummer}_${date}.jpg`;
+      let filename;
+
+      if (el.mastnummer) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.mastnummer}_${date}.jpg`;
+      } else if (
+        el.selectedVermarkungstrager &&
+        el.selectedVermarkungstrager !== "Sonstiges"
+      ) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
+      } else if (el.sonstiges2) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+      } else {
+        // Handle the case when none of the conditions are met
+        console.error("Invalid submission data");
+        return;
+      }
       const base64Data = el.photo.split(",")[1];
       zip.file(filename, base64Data, { base64: true });
     });
@@ -274,7 +290,6 @@ export const SimpleDialog = (props, ref) => {
       }, 100);
     });
   };
-  console.log(selectedVermarkungstrager)
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
@@ -360,31 +375,39 @@ export const SimpleDialog = (props, ref) => {
           name="Mastnummer"
           value={mastnummer}
           setValue={setMastnummer}
-          disabled={selectedVermarkungstrager !== null}
+          disabled={
+            selectedVermarkungstrager !== null &&
+            selectedVermarkungstrager !== 10
+          }
         />
-        <Typography variant="overline">
-          Wenn keine Mastnummer, Vermarkungsträger:
+        <Typography variant="h6" className={classes.title}>
+          Wenn keine Mastnummer vorhanden ist, dann Vermarkungsträger auswählen:
         </Typography>
         <FormControl fullWidth>
           <InputLabel id="demo-simple-select-label">
             Vermarkungsträger
           </InputLabel>
           <Select
-  labelId="vermarkungstraeger"
-  id="vermarkungstraeger"
-  value={selectedVermarkungstrager}
-  label="Vermarkung"
-  onChange={(event) => handleChange(event)}
+            labelId="vermarkungstraeger"
+            id="vermarkungstraeger"
+            value={selectedVermarkungstrager}
+            label="Vermarkung"
+            onChange={(event) => handleChange(event)}
             disabled={!!mastnummer}
->
-  {vermarkungOptions.map((option) => (
-    <MenuItem key={option.value} value={option.value}>
-      {option.label}
-    </MenuItem>
-  ))}
-</Select>
+          >
+            {vermarkungOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
         </FormControl>
-
+        <Attribute
+          name="Sonstiges"
+          value={sonstiges2}
+          setValue={setSonstiges2}
+          disabled={selectedVermarkungstrager !== 70}
+        />
         <br></br>
         <Attribute name="GVP Länge, mm" value={gvp} setValue={setGVP} />
         <br></br>
