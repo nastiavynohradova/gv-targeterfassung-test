@@ -150,9 +150,11 @@ export const SimpleDialog = (props, ref) => {
         }
 
         if (compressedPhoto.length <= maxSizeInBytes) {
-          const vermarkungLabel = vermarkungOptions.find(
-            (option) => option.value === selectedVermarkungstrager
-          ).label;
+          const vermarkungLabel = selectedVermarkungstrager
+            ? vermarkungOptions.find(
+                (option) => option.value === selectedVermarkungstrager
+              )?.label
+            : "";
 
           // Append new submission to the array
           const newSubmission = {
@@ -259,13 +261,13 @@ export const SimpleDialog = (props, ref) => {
     const zip = new JSZip();
     // Add the CSV data to the ZIP file
     const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Punktnummer; GVP Länge; Datum\n" +
+      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge; Datum\n" +
       submissions
         .map((entry) => {
           const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
             minimumFractionDigits: 2,
           });
-          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.punktnummer};${gvpInMeters};${entry.currentDate}`;
+          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${entry.currentDate}`;
         })
         .join("\n");
 
@@ -274,7 +276,22 @@ export const SimpleDialog = (props, ref) => {
     // Add the image files to the ZIP file
     submissions.forEach((el, index) => {
       const date = el.currentDate.replace(/-/g, "");
-      const filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.punktnummer}_${date}.jpg`;
+      let filename;
+
+      if (el.mastnummer) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.mastnummer}_${date}.jpg`;
+      } else if (
+        el.selectedVermarkungstrager &&
+        el.selectedVermarkungstrager !== "Sonstiges"
+      ) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
+      } else if (el.sonstiges2) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+      } else {
+        // Handle the case when none of the conditions are met
+        console.error("Invalid submission data");
+        return;
+      }
       const base64Data = el.photo.split(",")[1];
       zip.file(filename, base64Data, { base64: true });
     });

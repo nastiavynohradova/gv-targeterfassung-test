@@ -15,6 +15,9 @@ import Buttons from "./Buttons";
 import JSZip from "jszip";
 import { openDatabase, addSubmission, getAllSubmissions } from "../db";
 import Attribute from "./Attribute";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -44,7 +47,10 @@ const MainForm = ({ reff, row, setImportData }) => {
   const [met, setMet] = useState(row.Met ? row.Met : "");
   const [seite, setSeite] = useState("");
   const [sonstiges, setSonstiges] = useState("");
-  const [punktnummer, setPunktnummer] = useState(row.PktNr ? row.PktNr : "");
+  const [mastnummer, setMastnummer] = useState("");
+  const [selectedVermarkungstrager, setselectedVermarkungstrager] =
+    useState(null);
+  const [sonstiges2, setSonstiges2] = useState("");
   const [gvp, setGVP] = useState("");
   const [photo, setPhoto] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -60,25 +66,24 @@ const MainForm = ({ reff, row, setImportData }) => {
             "GVP Länge": gvp,
           };
         }
+        if (el.id === row.id) {
+          return {
+            ...el,
+            Mastnummer: mastnummer,
+          };
+        }
         return el;
       })
     );
-  }, [gvp, row.id, setImportData]);
-
-  console.log(row);
+  }, [gvp, mastnummer, row.id, setImportData]);
 
   // State for displaying the success and error message
   const [successOpen, setSuccessOpen] = useState(false);
-
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
     setCurrentDate(new Date().toISOString().slice(0, 10));
     if (row) {
-      // Autofill "Punktnummer" if available
-      if (row.PktNr) {
-        setPunktnummer(row.PktNr);
-      }
       if (row["Km-Station Ist"]) {
         const [kmValue, meterValue] = row["Km-Station Ist"].split(",");
         setKm(kmValue);
@@ -92,93 +97,26 @@ const MainForm = ({ reff, row, setImportData }) => {
 
   const classes = useStyles(); // Initialize the useStyles
 
-  const downloadCombinedTodayData = () => {
-    const zip = new JSZip();
-    const todaySubmissions = submissions.filter(
-      (entry) => entry.currentDate === currentDate
-    );
+  const vermarkungOptions = [
+    { value: 10, label: "Keiner" },
+    { value: 20, label: "Laterne" },
+    { value: 30, label: "Wand" },
+    { value: 40, label: "Fundament" },
+    { value: 50, label: "Lärmschutzwand" },
+    { value: 60, label: "Widerlager" },
+    { value: 70, label: "Sonstiges" },
+  ];
 
-    // Add the CSV data to the ZIP file
-    const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Punktnummer; GVP Länge; Datum\n" +
-      todaySubmissions
-        .map((entry) => {
-          const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
-            minimumFractionDigits: 2,
-          });
-          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.punktnummer};${gvpInMeters};${currentDate}`;
-        })
-        .join("\n");
-
-    zip.file(`${currentDate}.csv`, csvContent);
-
-    // Add the image files to the ZIP file
-    todaySubmissions.forEach((el, index) => {
-      const date = el.currentDate.replace(/-/g, "");
-      const filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.punktnummer}_${date}.jpg`;
-      const base64Data = el.photo.split(",")[1];
-      zip.file(filename, base64Data, { base64: true });
-    });
-
-    // Create and trigger a download link for the ZIP file
-    zip.generateAsync({ type: "blob" }).then((content) => {
-      const cur_date = new Date().toISOString().slice(0, 10);
-      const url = window.URL.createObjectURL(content);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${cur_date}.zip`;
-      link.click();
-    });
-  };
-
-  const downloadCombinedData = () => {
-    const zip = new JSZip();
-    // Add the CSV data to the ZIP file
-    const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Punktnummer; GVP Länge; Datum\n" +
-      submissions
-        .map((entry) => {
-          const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
-            minimumFractionDigits: 2,
-          });
-          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.punktnummer};${gvpInMeters};${entry.currentDate}`;
-        })
-        .join("\n");
-
-    zip.file("alle_daten.csv", csvContent);
-
-    // Add the image files to the ZIP file
-    submissions.forEach((el, index) => {
-      const date = el.currentDate.replace(/-/g, "");
-      const filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.punktnummer}_${date}.jpg`;
-      const base64Data = el.photo.split(",")[1];
-      zip.file(filename, base64Data, { base64: true });
-    });
-
-    // Create and trigger a download link for the ZIP file
-    zip.generateAsync({ type: "blob" }).then((content) => {
-      const url = window.URL.createObjectURL(content);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "combined_data.zip";
-      link.click();
-    });
+  const handleChange = (event) => {
+    setselectedVermarkungstrager(event.target.value);
+    if (event.target.value) {
+      setMastnummer(""); // Reset Mastnummer when Vermarkungstrager is selected
+    }
   };
 
   const handleSubmit = () => {
-    setImportData((state) =>
-      state.map((el) => {
-        if (el.Streckennummer === streckennummer) {
-          return {
-            ...el,
-            Punktnummer: punktnummer,
-          };
-        }
-        return el;
-      })
-    );
     // Check if a photo is selected
-    if (!formData.photo) {
+    if (!photo) {
       setErrorMessage("Bitte wählen Sie ein Foto aus, bevor Sie fortfahren.");
       setSuccessMessage(""); // Clear any existing success message
       return;
@@ -187,8 +125,6 @@ const MainForm = ({ reff, row, setImportData }) => {
     setErrorMessage("");
     setSuccessMessage("Erfolgreich hinzugefügt");
     // Reset the form after a successful submission
-    resetForm();
-
     const reader = new FileReader();
 
     reader.onload = (event) => {
@@ -217,15 +153,23 @@ const MainForm = ({ reff, row, setImportData }) => {
         }
 
         if (compressedPhoto.length <= maxSizeInBytes) {
+          const vermarkungLabel = selectedVermarkungstrager
+            ? vermarkungOptions.find(
+                (option) => option.value === selectedVermarkungstrager
+              )?.label
+            : "";
+
           // Append new submission to the array
           const newSubmission = {
-            streckennummer,
-            km,
-            met,
-            seite,
-            sonstiges,
-            punktnummer,
-            gvp,
+            streckennummer: streckennummer,
+            km: km,
+            met: met,
+            seite: seite,
+            sonstiges: sonstiges,
+            mastnummer: mastnummer,
+            selectedVermarkungstrager: vermarkungLabel,
+            sonstiges2: sonstiges2,
+            gvp: gvp,
             currentDate: currentDate,
             photo: compressedPhoto,
           };
@@ -256,8 +200,115 @@ const MainForm = ({ reff, row, setImportData }) => {
         }
       };
     };
-    reader.readAsDataURL(formData.photo);
+    reader.readAsDataURL(photo);
     reff.current.value = "";
+  };
+
+  const downloadCombinedTodayData = () => {
+    const zip = new JSZip();
+    const todaySubmissions = submissions.filter(
+      (entry) => entry.currentDate === currentDate
+    );
+
+    // Add the CSV data to the ZIP file
+    const csvContent =
+      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge; Datum\n" +
+      todaySubmissions
+        .map((entry) => {
+          const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
+            minimumFractionDigits: 2,
+          });
+          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${currentDate}`;
+        })
+        .join("\n");
+
+    zip.file(`${currentDate}.csv`, csvContent);
+
+    // Add the image files to the ZIP file
+    todaySubmissions.forEach((el, index) => {
+      const date = el.currentDate.replace(/-/g, "");
+      let filename;
+
+      if (el.mastnummer) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.mastnummer}_${date}.jpg`;
+      } else if (
+        el.selectedVermarkungstrager &&
+        el.selectedVermarkungstrager !== "Sonstiges"
+      ) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
+      } else if (el.sonstiges2) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+      } else {
+        // Handle the case when none of the conditions are met
+        console.error("Invalid submission data");
+        return;
+      }
+      const base64Data = el.photo.split(",")[1];
+      zip.file(filename, base64Data, { base64: true });
+    });
+
+    // Create and trigger a download link for the ZIP file
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      const cur_date = new Date().toISOString().slice(0, 10);
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${cur_date}.zip`;
+      setTimeout(() => {
+        link.click();
+      }, 100);
+    });
+  };
+
+  const downloadCombinedData = () => {
+    const zip = new JSZip();
+    // Add the CSV data to the ZIP file
+    const csvContent =
+      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge; Datum\n" +
+      submissions
+        .map((entry) => {
+          const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
+            minimumFractionDigits: 2,
+          });
+          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${entry.currentDate}`;
+        })
+        .join("\n");
+
+    zip.file("alle_daten.csv", csvContent);
+
+    // Add the image files to the ZIP file
+    submissions.forEach((el, index) => {
+      const date = el.currentDate.replace(/-/g, "");
+      let filename;
+
+      if (el.mastnummer) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.mastnummer}_${date}.jpg`;
+      } else if (
+        el.selectedVermarkungstrager &&
+        el.selectedVermarkungstrager !== "Sonstiges"
+      ) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
+      } else if (el.sonstiges2) {
+        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+      } else {
+        // Handle the case when none of the conditions are met
+        console.error("Invalid submission data");
+        return;
+      }
+      const base64Data = el.photo.split(",")[1];
+      zip.file(filename, base64Data, { base64: true });
+    });
+
+    // Create and trigger a download link for the ZIP file
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "combined_data.zip";
+      setTimeout(() => {
+        link.click();
+      }, 100);
+    });
   };
 
   const handleSuccessClose = (event, reason) => {
@@ -295,11 +346,8 @@ const MainForm = ({ reff, row, setImportData }) => {
   };
 
   const handlePhotoChange = (e) => {
-    const photo = e.target.files[0];
-    setFormData({
-      ...formData,
-      photo,
-    });
+    const photoFile = e.target.files[0];
+    setPhoto(photoFile);
   };
 
   useEffect(() => {
@@ -391,9 +439,41 @@ const MainForm = ({ reff, row, setImportData }) => {
         </Box>
         <br></br>
         <Attribute
-          value={punktnummer}
-          setValue={setPunktnummer}
-          name="Punktnummer"
+          name="Mastnummer"
+          value={mastnummer}
+          setValue={setMastnummer}
+          disabled={
+            selectedVermarkungstrager !== null &&
+            selectedVermarkungstrager !== 10
+          }
+        />
+        <Typography variant="h6" className={classes.title}>
+          Wenn keine Mastnummer vorhanden ist, dann Vermarkungsträger auswählen:
+        </Typography>
+        <FormControl fullWidth>
+          <InputLabel id="demo-simple-select-label">
+            Vermarkungsträger
+          </InputLabel>
+          <Select
+            labelId="vermarkungstraeger"
+            id="vermarkungstraeger"
+            value={selectedVermarkungstrager}
+            label="Vermarkung"
+            onChange={(event) => handleChange(event)}
+            disabled={!!mastnummer}
+          >
+            {vermarkungOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Attribute
+          name="Sonstiges"
+          value={sonstiges2}
+          setValue={setSonstiges2}
+          disabled={selectedVermarkungstrager !== 70}
         />
         <br></br>
         <Attribute value={gvp} setValue={setGVP} name="GVP Länge, mm" />

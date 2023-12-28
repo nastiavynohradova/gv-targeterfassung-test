@@ -22,21 +22,18 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const TableWrapper = ({
-  importData,
-  reff,
-  setImportData,
-  colNames
-}) => {
-  console.log(colNames)
+const TableWrapper = ({ importData, reff, setImportData, colNames }) => {
+  console.log(colNames);
   const classes = useStyles();
   return (
     <TableContainer component={Paper}>
       <Table className={classes.table} aria-label="enhanced table">
         <TableHead>
           <TableRow className={classes.tableHead}>
-            {colNames.map((col,idx) => (
-              <TableCell key={`keys-${idx}`} align="right">{col}</TableCell>
+            {colNames.map((col, idx) => (
+              <TableCell key={`keys-${idx}`} align="right">
+                {col}
+              </TableCell>
             ))}
             <TableCell key={`keys-edit`} align="right"></TableCell>
           </TableRow>
@@ -45,8 +42,10 @@ const TableWrapper = ({
           {importData.map((row, idx) => (
             <TableRow key={idx}>
               {colNames.map((col, idx) => (
-                <TableCell key={`values-${idx}`} align="right">{row[col]}</TableCell>
-            ))}
+                <TableCell key={`values-${idx}`} align="right">
+                  {row[col]}
+                </TableCell>
+              ))}
               <TableCell key={`values-edit`} align="right">
                 <MainFormDialogContainer
                   row={row}

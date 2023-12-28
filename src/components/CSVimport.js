@@ -17,16 +17,34 @@ const handleCSVFile = (file, setImportData, setColNames) => {
         // Exclude the last row if it is empty
         const dataRows = result.data.slice(0, -1);
 
-        setImportData([
-          ...dataRows.map((el, idx) => ({
-            id: idx,
-            ...el,
-            Streckennummer: name,
-            "GVP Länge": "",
-          })),
-        ]);
+        // Define the columns you want to include
+        const columnsToInclude = ["PktNr", "Km-Station Ist"];
 
-        setColNames([...headerRow, "Streckennummer", "GVP Länge"]);
+        // Filter out only the columns you are interested in
+        const filteredDataRows = dataRows.map((el, idx) => {
+          const filteredRow = {
+            id: idx,
+            Streckennummer: name,
+            Mastnummer: "",
+            "GVP Länge": "",
+          };
+
+          columnsToInclude.forEach((col) => {
+            filteredRow[col] = el[col];
+          });
+
+          return filteredRow;
+        });
+
+        setImportData(filteredDataRows);
+
+        // Set the column names
+        setColNames([
+          ...columnsToInclude,
+          "Streckennummer",
+          "Mastnummer",
+          "GVP Länge",
+        ]);
       } else {
         console.error("CSV file is empty or missing data.");
         // Handle the case when the CSV file is empty or missing data
