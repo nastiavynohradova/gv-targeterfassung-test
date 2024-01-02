@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/gv-targeterfassung-test/static/css/main.21d7bd9c.chunk.css",
+    "main.js": "/gv-targeterfassung-test/static/js/main.f6c56263.chunk.js",
+    "main.js.map": "/gv-targeterfassung-test/static/js/main.f6c56263.chunk.js.map",
+    "runtime-main.js": "/gv-targeterfassung-test/static/js/runtime-main.8ea3e880.js",
+    "runtime-main.js.map": "/gv-targeterfassung-test/static/js/runtime-main.8ea3e880.js.map",
+    "static/js/2.eedc13a2.chunk.js": "/gv-targeterfassung-test/static/js/2.eedc13a2.chunk.js",
+    "static/js/2.eedc13a2.chunk.js.map": "/gv-targeterfassung-test/static/js/2.eedc13a2.chunk.js.map",
+    "index.html": "/gv-targeterfassung-test/index.html",
+    "precache-manifest.6c6f9c9ee4c93137af0efb65575cc808.js": "/gv-targeterfassung-test/precache-manifest.6c6f9c9ee4c93137af0efb65575cc808.js",
+    "service-worker.js": "/gv-targeterfassung-test/service-worker.js",
+    "static/css/main.21d7bd9c.chunk.css.map": "/gv-targeterfassung-test/static/css/main.21d7bd9c.chunk.css.map",
+    "static/js/2.eedc13a2.chunk.js.LICENSE.txt": "/gv-targeterfassung-test/static/js/2.eedc13a2.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.8ea3e880.js",
+    "static/js/2.eedc13a2.chunk.js",
+    "static/css/main.21d7bd9c.chunk.css",
+    "static/js/main.f6c56263.chunk.js"
+  ]
+}
