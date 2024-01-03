@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "3d8907d2bb57694fd74203785445db89",
+    "revision": "f2c7b96d9078ac94a4c04d48643ed4d6",
     "url": "/gv-targeterfassung-test/index.html"
   },
   {
-    "revision": "9dde0646348432611ba4",
+    "revision": "3f344071ee8ba58c023e",
     "url": "/gv-targeterfassung-test/static/css/main.21d7bd9c.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/gv-targeterfassung-test/static/js/2.2774b67a.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "9dde0646348432611ba4",
-    "url": "/gv-targeterfassung-test/static/js/main.15773b50.chunk.js"
+    "revision": "3f344071ee8ba58c023e",
+    "url": "/gv-targeterfassung-test/static/js/main.dddb5649.chunk.js"
   },
   {
     "revision": "3b8475ddee44082c9fe4",
