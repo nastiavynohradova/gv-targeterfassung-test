@@ -1,7 +1,7 @@
 {
   "name": "gv-targeterfassung",
   "version": "0.3.0",
-  "homepage": "https://giconsultapp.github.io/gv-targeterfassung-app",
+  "homepage": "https://nastiavynohradova.github.io/gv-targeterfassung-test",
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.11.0",
@@ -12,16 +12,21 @@
     "axios": "^0.20.0",
     "browser-image-compression": "^2.0.2",
     "classnames": "^2.3.2",
+    "compressorjs": "^1.2.1",
     "image-compressor": "^2.0.3",
+    "image-conversion": "^2.1.1",
     "jszip": "^3.10.1",
     "papaparse": "^5.4.1",
     "react": "^16.13.1",
     "react-csv": "^2.2.2",
     "react-dom": "^16.13.1",
     "react-image-file-resizer": "^0.4.8",
+    "react-native-vision-camera": "^3.6.17",
     "react-router-dom": "^6.18.0",
     "react-scripts": "3.4.3",
-    "uuid": "^8.3.0"
+    "react-webcam": "^7.2.0",
+    "uuid": "^8.3.0",
+    "webcam-easy": "^1.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -47,6 +52,6 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^6.1.0"
+    "gh-pages": "^6.1.1"
   }
 }

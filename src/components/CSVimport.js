@@ -25,7 +25,6 @@ const handleCSVFile = (file, setImportData, setColNames) => {
           const filteredRow = {
             id: idx,
             Streckennummer: name,
-            Mastnummer: "",
             "GVP Länge": "",
           };
 
@@ -39,12 +38,7 @@ const handleCSVFile = (file, setImportData, setColNames) => {
         setImportData(filteredDataRows);
 
         // Set the column names
-        setColNames([
-          ...columnsToInclude,
-          "Streckennummer",
-          "Mastnummer",
-          "GVP Länge",
-        ]);
+        setColNames([...columnsToInclude, "Streckennummer", "GVP Länge"]);
       } else {
         console.error("CSV file is empty or missing data.");
         // Handle the case when the CSV file is empty or missing data

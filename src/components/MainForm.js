@@ -10,7 +10,7 @@ import {
   makeStyles, // Import makeStyles
 } from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Buttons from "./Buttons";
 import JSZip from "jszip";
 import { openDatabase, addSubmission, getAllSubmissions } from "../db";
@@ -18,6 +18,8 @@ import Attribute from "./Attribute";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
+import Webcam from "react-webcam";
+import imageCompression from "browser-image-compression";
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -27,6 +29,14 @@ const useStyles = makeStyles((theme) => ({
   },
   textField: {
     marginBottom: "1px", // Add margin to text fields
+  },
+  successSnackbar: {
+    backgroundColor: theme.palette.success.main,
+    color: theme.palette.success.contrastText,
+  },
+  errorSnackbar: {
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText,
   },
 }));
 
@@ -56,6 +66,7 @@ const MainForm = ({ reff, row, setImportData }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [submissions, setSubmissions] = useState([]); // Store all submissions
+  //const webcamRef = useRef(null);
 
   useEffect(() => {
     setImportData((state) =>
@@ -76,6 +87,17 @@ const MainForm = ({ reff, row, setImportData }) => {
       })
     );
   }, [gvp, mastnummer, row.id, setImportData]);
+
+  //const capture = () => {
+  //  const imageSrc = webcamRef.current.getScreenshot();
+  //  setPhoto(imageSrc);
+  //};
+
+  //const videoConstraints = {
+  //  width: 440,
+  //  height: 280,
+  //  facingMode: { exact: "environment" },
+  //};
 
   // State for displaying the success and error message
   const [successOpen, setSuccessOpen] = useState(false);
@@ -121,45 +143,28 @@ const MainForm = ({ reff, row, setImportData }) => {
       setSuccessMessage(""); // Clear any existing success message
       return;
     }
-    // Clear the error message if a photo is selected
-    setErrorMessage("");
-    setSuccessMessage("Erfolgreich hinzugefügt");
-    // Reset the form after a successful submission
+
     const reader = new FileReader();
 
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const base64Photo = event.target.result;
       const maxSizeInBytes = 0.5 * 1024 * 1024; // 0.5 MB
-      let quality = 0.9;
+      let quality = 1;
 
+      // Create an Image object and set its source to the base64 representation of the photo
       const image = new Image();
       image.src = base64Photo;
 
-      image.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        canvas.width = image.width;
-        canvas.height = image.height;
-
-        ctx.drawImage(image, 0, 0, image.width, image.height);
-        // Convert the canvas content to a data URL with JPEG format
-        let compressedPhoto = canvas.toDataURL("image/jpeg", quality);
-
-        while (compressedPhoto.length > maxSizeInBytes && quality >= 0.1) {
-          // Reduce quality and recompress
-          quality -= 0.1;
-          compressedPhoto = canvas.toDataURL("image/jpeg", quality);
-        }
-
-        if (compressedPhoto.length <= maxSizeInBytes) {
+      image.onload = async () => {
+        // Check if the photo size is smaller than or equal to 0.5 MB
+        if (event.total <= maxSizeInBytes) {
+          // Do nothing, the photo is already within the size limit
           const vermarkungLabel = selectedVermarkungstrager
             ? vermarkungOptions.find(
                 (option) => option.value === selectedVermarkungstrager
               )?.label
             : "";
 
-          // Append new submission to the array
           const newSubmission = {
             streckennummer: streckennummer,
             km: km,
@@ -171,35 +176,96 @@ const MainForm = ({ reff, row, setImportData }) => {
             sonstiges2: sonstiges2,
             gvp: gvp,
             currentDate: currentDate,
-            photo: compressedPhoto,
+            photo: base64Photo,
           };
-          // Save to IndexedDB each time the user submits
-          openDatabase()
-            .then((db) => {
-              addSubmission(db, newSubmission)
-                .then(() => {
-                  // Fetch updated submissions
-                  getAllSubmissions(db)
-                    .then((data) => {
-                      setSubmissions(data);
-                      setSuccessMessage("Erfolgreich hinzugefügt");
-                      setSuccessOpen(true);
-                    })
-                    .catch((error) =>
-                      console.error("Error fetching submissions: ", error)
-                    );
-                })
-                .catch((error) =>
-                  console.error("Error adding submission: ", error)
-                );
-            })
-            .catch((error) => console.error("Error opening database: ", error));
+
+          // Save the new submission to IndexedDB
+          try {
+            const db = await openDatabase();
+            await addSubmission(db, newSubmission);
+            const data = await getAllSubmissions(db);
+            setSubmissions(data);
+            setSuccessMessage("Erfolgreich hinzugefügt");
+            setSuccessOpen(true);
+          } catch (error) {
+            console.error("Error adding or fetching submission: ", error);
+          }
         } else {
-          console.error("Compressed photo size is still too large.");
-          // Handle the situation where the photo can't be compressed to the desired size.
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          canvas.width = image.width;
+          canvas.height = image.height;
+
+          ctx.drawImage(image, 0, 0, image.width, image.height);
+
+          try {
+            const compressedPhotoBlob = await new Promise((resolve) => {
+              canvas.toBlob(resolve, "image/jpeg", quality);
+            });
+
+            const compressedPhoto = await imageCompression(
+              compressedPhotoBlob,
+              {
+                maxSizeMB: 0.5,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+              }
+            );
+            console.log(
+              "compressedFile instanceof Blob",
+              compressedPhoto instanceof Blob
+            ); // true
+            console.log(
+              `compressedFile size ${compressedPhoto.size / 1024 / 1024} MB`
+            ); // smaller than maxSizeMB
+
+            const vermarkungLabel = selectedVermarkungstrager
+              ? vermarkungOptions.find(
+                  (option) => option.value === selectedVermarkungstrager
+                )?.label
+              : "";
+
+            const newSubmission = {
+              streckennummer: streckennummer,
+              km: km,
+              met: met,
+              seite: seite,
+              sonstiges: sonstiges,
+              mastnummer: mastnummer,
+              selectedVermarkungstrager: vermarkungLabel,
+              sonstiges2: sonstiges2,
+              gvp: gvp,
+              currentDate: currentDate,
+              photo: compressedPhoto,
+            };
+
+            // Save the new submission to IndexedDB
+            try {
+              const db = await openDatabase();
+              await addSubmission(db, newSubmission);
+              const data = await getAllSubmissions(db);
+              setSubmissions(data);
+              setSuccessMessage("Erfolgreich hinzugefügt");
+              setSuccessOpen(true);
+            } catch (error) {
+              console.error("Error adding or fetching submission: ", error);
+            }
+          } catch (error) {
+            /* else {
+              console.error("Compressed photo size is still too large.");
+              setErrorMessage(
+                "Die komprimierte Foto-Größe ist immer noch zu groß, um eine vernünftige Qualität beizubehalten. Bitte wählen Sie eine kleinere Dateigröße oder optimieren Sie das Bild, bevor Sie es hochladen."
+              );
+              setSuccessMessage(""); // Clear any existing success message
+            } */
+            console.error("Error compressing photo: ", error);
+          }
         }
       };
     };
+
+    // Read the photo data as a data URL
     reader.readAsDataURL(photo);
     reff.current.value = "";
   };
@@ -212,7 +278,7 @@ const MainForm = ({ reff, row, setImportData }) => {
 
     // Add the CSV data to the ZIP file
     const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge; Datum\n" +
+      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge (m); Datum\n" +
       todaySubmissions
         .map((entry) => {
           const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
@@ -243,8 +309,8 @@ const MainForm = ({ reff, row, setImportData }) => {
         console.error("Invalid submission data");
         return;
       }
-      const base64Data = el.photo.split(",")[1];
-      zip.file(filename, base64Data, { base64: true });
+      const photoBlob = el.photo;
+      zip.file(filename, photoBlob);
     });
 
     // Create and trigger a download link for the ZIP file
@@ -264,7 +330,7 @@ const MainForm = ({ reff, row, setImportData }) => {
     const zip = new JSZip();
     // Add the CSV data to the ZIP file
     const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge; Datum\n" +
+      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge (m); Datum\n" +
       submissions
         .map((entry) => {
           const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
@@ -295,8 +361,8 @@ const MainForm = ({ reff, row, setImportData }) => {
         console.error("Invalid submission data");
         return;
       }
-      const base64Data = el.photo.split(",")[1];
-      zip.file(filename, base64Data, { base64: true });
+      const photoBlob = el.photo;
+      zip.file(filename, photoBlob);
     });
 
     // Create and trigger a download link for the ZIP file
@@ -499,13 +565,21 @@ const MainForm = ({ reff, row, setImportData }) => {
           Foto hochladen
         </Typography>
 
+        {/*  <Webcam
+          audio={false}
+          videoConstraints={videoConstraints}
+          ref={webcamRef}
+        /> */}
+
+        {/*  <button onClick={capture}>Foto aufnehmen</button> */}
+        {/* {photo && <img src={photo} alt="Captured" />} */}
         <input
           ref={(el) => (reff.current = el)}
           required
           type="file"
           name="photo"
           accept="image/*;capture=camera"
-          onChange={handlePhotoChange}
+          onChange={(e) => handlePhotoChange(e)}
         />
       </Box>
       <Buttons
@@ -515,23 +589,23 @@ const MainForm = ({ reff, row, setImportData }) => {
       />
       <Snackbar
         open={!!successMessage}
-        autoHideDuration={6000}
+        autoHideDuration={7000}
         onClose={handleSuccessClose}
       >
         <SnackbarContent
           message={successMessage}
-          /*           className={classes.successSnackbar} */
+          className={classes.successSnackbar}
         />
       </Snackbar>
 
       <Snackbar
         open={!!errorMessage}
-        autoHideDuration={6000}
+        autoHideDuration={12000}
         onClose={handleErrorClose}
       >
         <SnackbarContent
           message={errorMessage}
-          /*           className={classes.errorSnackbar} */
+          className={classes.errorSnackbar}
         />
       </Snackbar>
     </>
