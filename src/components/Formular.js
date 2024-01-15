@@ -307,9 +307,14 @@ export const SimpleDialog = (props, ref) => {
         console.error("Invalid submission data");
         return;
       }
-      const photoBlob = el.photo;
-      //const base64Data = el.photo.split(",")[1];
-      zip.file(filename, photoBlob);
+      if (el.photo instanceof Blob) {
+        // Assuming el.photo is a Blob
+        zip.file(filename, el.photo);
+      } else if (typeof el.photo === "string") {
+        // Assuming el.photo is a base64 encoded string
+        const base64Data = el.photo.split(",")[1];
+        zip.file(filename, base64Data, { base64: true });
+      }
     });
 
     // Create and trigger a download link for the ZIP file
@@ -360,9 +365,14 @@ export const SimpleDialog = (props, ref) => {
         console.error("Invalid submission data");
         return;
       }
-      //const base64Data = el.photo.split(",")[1];
-      const photoBlob = el.photo;
-      zip.file(filename, photoBlob);
+      if (el.photo instanceof Blob) {
+        // Assuming el.photo is a Blob
+        zip.file(filename, el.photo);
+      } else if (typeof el.photo === "string") {
+        // Assuming el.photo is a base64 encoded string
+        const base64Data = el.photo.split(",")[1];
+        zip.file(filename, base64Data, { base64: true });
+      }
     });
 
     // Create and trigger a download link for the ZIP file
