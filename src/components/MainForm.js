@@ -189,6 +189,11 @@ const MainForm = ({ reff, row, setImportData }) => {
             setSuccessOpen(true);
           } catch (error) {
             console.error("Error adding or fetching submission: ", error);
+          } finally {
+            // Clear the success message after a short delay
+            setTimeout(() => {
+              setSuccessMessage("");
+            }, 5000); // Adjust the delay as needed
           }
         } else {
           const canvas = document.createElement("canvas");
