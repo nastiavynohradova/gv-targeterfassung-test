@@ -52,3 +52,13 @@ export function getAllSubmissions(db) {
     };
   });
 }
+
+async function deleteSubmission(db, id) {
+  const tx = db.transaction("submissions", "readwrite");
+  const store = tx.objectStore("submissions");
+  await store.delete(id);
+  await tx.complete;
+}
+
+// Export the deleteSubmission function
+export { deleteSubmission };

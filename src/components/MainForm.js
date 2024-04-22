@@ -13,12 +13,16 @@ import TextField from "@material-ui/core/TextField";
 import React, { useEffect, useState, useRef } from "react";
 import Buttons from "./Buttons";
 import JSZip from "jszip";
-import { openDatabase, addSubmission, getAllSubmissions } from "../db";
+import {
+  openDatabase,
+  addSubmission,
+  deleteSubmission,
+  getAllSubmissions,
+} from "../db";
 import Attribute from "./Attribute";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
-import Webcam from "react-webcam";
 import imageCompression from "browser-image-compression";
 
 const useStyles = makeStyles((theme) => ({
@@ -48,6 +52,7 @@ const MainForm = ({ reff, row, setImportData }) => {
     photo: null,
   });
 
+  const [punktnummer, setPunktnummer] = useState(row.PktNr ? row.PktNr : "");
   const [streckennummer, setStreckennummer] = useState(
     row.Streckennummer ? row.Streckennummer : ""
   );
@@ -60,12 +65,14 @@ const MainForm = ({ reff, row, setImportData }) => {
   const [mastnummer, setMastnummer] = useState("");
   const [selectedVermarkungstrager, setselectedVermarkungstrager] =
     useState(null);
+  const [selectedStatus, setselectedStatus] = useState(null);
   const [sonstiges2, setSonstiges2] = useState("");
   const [gvp, setGVP] = useState("");
   const [photo, setPhoto] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [submissions, setSubmissions] = useState([]); // Store all submissions
+
   //const webcamRef = useRef(null);
 
   useEffect(() => {
@@ -74,7 +81,7 @@ const MainForm = ({ reff, row, setImportData }) => {
         if (el.id === row.id) {
           return {
             ...el,
-            "GVP Länge": gvp,
+            "Offset [mm]": gvp,
           };
         }
         if (el.id === row.id) {
@@ -108,8 +115,10 @@ const MainForm = ({ reff, row, setImportData }) => {
     if (row) {
       if (row["Km-Station Ist"]) {
         const [kmValue, meterValue] = row["Km-Station Ist"].split(",");
-        setKm(kmValue);
-        setMet(meterValue);
+        const km = kmValue.slice(0, -3);
+        const meters = parseFloat(kmValue.slice(-3));
+        setKm(km);
+        setMet(meters);
       }
       if (row.Seite) {
         setSeite(row.Seite);
@@ -129,11 +138,21 @@ const MainForm = ({ reff, row, setImportData }) => {
     { value: 70, label: "Sonstiges" },
   ];
 
-  const handleChange = (event) => {
+  const statusOptions = [
+    { value: 1, label: "Zerstört" },
+    { value: 2, label: "Vorhanden mit Target" },
+    { value: 3, label: "Vorhanden ohne Target" },
+  ];
+
+  const handleChangeVermarkung = (event) => {
     setselectedVermarkungstrager(event.target.value);
     if (event.target.value) {
       setMastnummer(""); // Reset Mastnummer when Vermarkungstrager is selected
     }
+  };
+
+  const handleChangeStatus = (event) => {
+    setselectedStatus(event.target.value);
   };
 
   const handleSubmit = () => {
@@ -143,6 +162,42 @@ const MainForm = ({ reff, row, setImportData }) => {
       setSuccessMessage(""); // Clear any existing success message
       return;
     }
+    // Check if streckennummer is empty
+    if (!streckennummer) {
+      setErrorMessage(
+        "Bitte geben Sie die Streckennummer ein, bevor Sie fortfahren."
+      );
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    if (!km & !met) {
+      setErrorMessage(
+        "Bitte geben Sie die Kilometrierung ein, bevor Sie fortfahren."
+      );
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    if (!seite) {
+      setErrorMessage("Bitte wählen Sie eine Seite aus, bevor Sie fortfahren.");
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    if (!mastnummer) {
+      setErrorMessage(
+        "Bitte geben Sie eine Mastnummer ein, bevor Sie fortfahren."
+      );
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    if (!selectedStatus) {
+      setErrorMessage(
+        "Bitte wählen Sie einen Status aus, bevor Sie fortfahren."
+      );
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    // Reset the form after a successful submission
+    resetForm();
 
     const reader = new FileReader();
 
@@ -165,7 +220,13 @@ const MainForm = ({ reff, row, setImportData }) => {
               )?.label
             : "";
 
+          const statusLabel = selectedStatus
+            ? statusOptions.find((option) => option.value === selectedStatus)
+                ?.label
+            : "";
+
           const newSubmission = {
+            punktnummer: punktnummer,
             streckennummer: streckennummer,
             km: km,
             met: met,
@@ -173,6 +234,7 @@ const MainForm = ({ reff, row, setImportData }) => {
             sonstiges: sonstiges,
             mastnummer: mastnummer,
             selectedVermarkungstrager: vermarkungLabel,
+            selectedStatus: statusLabel,
             sonstiges2: sonstiges2,
             gvp: gvp,
             currentDate: currentDate,
@@ -182,18 +244,29 @@ const MainForm = ({ reff, row, setImportData }) => {
           // Save the new submission to IndexedDB
           try {
             const db = await openDatabase();
+            //await addSubmission(db, newSubmission);
+            let data = await getAllSubmissions(db);
+            // Check if there's an existing submission with the same Streckennummer, Punktnummer, Kilometrierung
+            const index = data.findIndex(
+              (submission) =>
+                submission.streckennummer === newSubmission.streckennummer &&
+                submission.km === newSubmission.km &&
+                submission.punktnummer === newSubmission.punktnummer &&
+                submission.met === newSubmission.met
+            );
+            console.log(index);
+            if (index !== -1) {
+              // If a matching submission is found, replace it with the new submission
+              await deleteSubmission(db, data[index].id);
+            }
+            // Add the new submission
             await addSubmission(db, newSubmission);
-            const data = await getAllSubmissions(db);
             setSubmissions(data);
+
             setSuccessMessage("Erfolgreich hinzugefügt");
             setSuccessOpen(true);
           } catch (error) {
             console.error("Error adding or fetching submission: ", error);
-          } finally {
-            // Clear the success message after a short delay
-            setTimeout(() => {
-              setSuccessMessage("");
-            }, 5000); // Adjust the delay as needed
           }
         } else {
           const canvas = document.createElement("canvas");
@@ -231,7 +304,13 @@ const MainForm = ({ reff, row, setImportData }) => {
                 )?.label
               : "";
 
+            const statusLabel = selectedStatus
+              ? statusOptions.find((option) => option.value === selectedStatus)
+                  ?.label
+              : "";
+
             const newSubmission = {
+              punktnummer: punktnummer,
               streckennummer: streckennummer,
               km: km,
               met: met,
@@ -239,6 +318,7 @@ const MainForm = ({ reff, row, setImportData }) => {
               sonstiges: sonstiges,
               mastnummer: mastnummer,
               selectedVermarkungstrager: vermarkungLabel,
+              selectedStatus: statusLabel,
               sonstiges2: sonstiges2,
               gvp: gvp,
               currentDate: currentDate,
@@ -248,9 +328,25 @@ const MainForm = ({ reff, row, setImportData }) => {
             // Save the new submission to IndexedDB
             try {
               const db = await openDatabase();
+              //await addSubmission(db, newSubmission);
+              let data = await getAllSubmissions(db);
+              // Check if there's an existing submission with the same Streckennummer, Punktnummer, Kilometrierung
+              const index = data.findIndex(
+                (submission) =>
+                  submission.streckennummer === newSubmission.streckennummer &&
+                  submission.km === newSubmission.km &&
+                  submission.punktnummer === newSubmission.punktnummer &&
+                  submission.met === newSubmission.met
+              );
+              console.log(index);
+              if (index !== -1) {
+                // If a matching submission is found, replace it with the new submission
+                await deleteSubmission(db, data[index].id);
+              }
+              // Add the new submission
               await addSubmission(db, newSubmission);
-              const data = await getAllSubmissions(db);
               setSubmissions(data);
+
               setSuccessMessage("Erfolgreich hinzugefügt");
               setSuccessOpen(true);
             } catch (error) {
@@ -283,32 +379,56 @@ const MainForm = ({ reff, row, setImportData }) => {
 
     // Add the CSV data to the ZIP file
     const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge (m); Datum\n" +
+      "Punktnummer;Streckennummer;Kilometrierung; Seite (bezogen auf Strecke); Sonstiges; Mastnummer; Status; Vermarkung; Sonstiges Vermarkung; Offset [m]; Datum\n" +
       todaySubmissions
         .map((entry) => {
           const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
             minimumFractionDigits: 2,
           });
-          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${currentDate}`;
+          return `${entry.punktnummer};${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedStatus};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${currentDate}`;
         })
         .join("\n");
 
     zip.file(`${currentDate}.csv`, csvContent);
 
+    // Create two folders directly in the ZIP file
+    const vorhandenMitTargetFolder = zip.folder("Vorhanden_mit_Target");
+    const vorhandenOhneTargetFolder = zip.folder("Vorhanden_ohne_Target");
+
     // Add the image files to the ZIP file
     todaySubmissions.forEach((el, index) => {
       const date = el.currentDate.replace(/-/g, "");
+      let roundedMetWithoutLastDigit;
+      if (el.met && el.met.toString().length >= 3) {
+        const metAsNumber = parseFloat(el.met);
+        const roundedMet = Math.round(metAsNumber / 10) * 10;
+        roundedMetWithoutLastDigit = Math.floor(roundedMet / 10);
+      } else {
+        roundedMetWithoutLastDigit = el.met; // No rounding if met has 1 or 2 digits
+      }
+
+      let folderToAdd;
+      if (el.selectedStatus === "Vorhanden ohne Target") {
+        folderToAdd = vorhandenOhneTargetFolder;
+      } else {
+        folderToAdd = vorhandenMitTargetFolder;
+      }
+
       let filename;
 
-      if (el.mastnummer) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.mastnummer}_${date}.jpg`;
+      if (el.mastnummer && el.mastnummer.endsWith("N")) {
+        let mastnummer = el.mastnummer;
+        mastnummer = mastnummer.trim().slice(0, -1);
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${mastnummer}_${date}.jpg`;
       } else if (
         el.selectedVermarkungstrager &&
         el.selectedVermarkungstrager !== "Sonstiges"
       ) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
       } else if (el.sonstiges2) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+      } else if (el.mastnummer) {
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.mastnummer}_${date}.jpg`;
       } else {
         // Handle the case when none of the conditions are met
         console.error("Invalid submission data");
@@ -317,11 +437,11 @@ const MainForm = ({ reff, row, setImportData }) => {
 
       if (el.photo instanceof Blob) {
         // Assuming el.photo is a Blob
-        zip.file(filename, el.photo);
+        folderToAdd.file(filename, el.photo);
       } else if (typeof el.photo === "string") {
         // Assuming el.photo is a base64 encoded string
         const base64Data = el.photo.split(",")[1];
-        zip.file(filename, base64Data, { base64: true });
+        folderToAdd.file(filename, base64Data, { base64: true });
       }
     });
 
@@ -342,32 +462,52 @@ const MainForm = ({ reff, row, setImportData }) => {
     const zip = new JSZip();
     // Add the CSV data to the ZIP file
     const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge (m); Datum\n" +
+      "Punktnummer;Streckennummer;Kilometrierung; Seite (bezogen auf Strecke); Sonstiges; Mastnummer; Status; Vermarkung; Sonstiges Vermarkung; Offset [m]; Datum\n" +
       submissions
         .map((entry) => {
           const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
             minimumFractionDigits: 2,
           });
-          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${entry.currentDate}`;
+          return `${entry.punktnummer};${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedStatus};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${entry.currentDate}`;
         })
         .join("\n");
 
     zip.file("alle_daten.csv", csvContent);
 
+    // Create two folders directly in the ZIP file
+    const vorhandenMitTargetFolder = zip.folder("Vorhanden_mit_Target");
+    const vorhandenOhneTargetFolder = zip.folder("Vorhanden_ohne_Target");
+
     // Add the image files to the ZIP file
     submissions.forEach((el, index) => {
       const date = el.currentDate.replace(/-/g, "");
+      let roundedMetWithoutLastDigit;
+      if (el.met && el.met.toString().length >= 3) {
+        const metAsNumber = parseFloat(el.met);
+        const roundedMet = Math.round(metAsNumber / 10) * 10;
+        roundedMetWithoutLastDigit = Math.floor(roundedMet / 10);
+      } else {
+        roundedMetWithoutLastDigit = el.met; // No rounding if met has 1 or 2 digits
+      }
+
+      let folderToAdd;
+      if (el.selectedStatus === "Vorhanden ohne Target") {
+        folderToAdd = vorhandenMitTargetFolder;
+      } else if (el.selectedStatus === "Vorhanden ohne Target") {
+        folderToAdd = vorhandenOhneTargetFolder;
+      }
+
       let filename;
 
       if (el.mastnummer) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.mastnummer}_${date}.jpg`;
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.mastnummer}_${date}.jpg`;
       } else if (
         el.selectedVermarkungstrager &&
         el.selectedVermarkungstrager !== "Sonstiges"
       ) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
       } else if (el.sonstiges2) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
       } else {
         // Handle the case when none of the conditions are met
         console.error("Invalid submission data");
@@ -375,11 +515,11 @@ const MainForm = ({ reff, row, setImportData }) => {
       }
       if (el.photo instanceof Blob) {
         // Assuming el.photo is a Blob
-        zip.file(filename, el.photo);
+        folderToAdd.file(filename, el.photo);
       } else if (typeof el.photo === "string") {
         // Assuming el.photo is a base64 encoded string
         const base64Data = el.photo.split(",")[1];
-        zip.file(filename, base64Data, { base64: true });
+        folderToAdd.file(filename, base64Data, { base64: true });
       }
     });
 
@@ -457,13 +597,18 @@ const MainForm = ({ reff, row, setImportData }) => {
         boxShadow="0 0 5px rgba(0, 0, 0, 0.2)"
       >
         <Attribute
+          value={punktnummer}
+          setValue={setPunktnummer}
+          name="Punktnummer"
+        />
+        <Attribute
           value={streckennummer}
           setValue={setStreckennummer}
           name="Streckennummer"
         />
         {/* <Attribute value={km} setValue={setKm} name="Km" /> */}
         <Typography variant="h6" className={classes.title}>
-          Kilometrierung
+          Kilometrierung [km]
         </Typography>
         <Box display="flex" flexDirection="row" alignItems="center">
           <TextField
@@ -471,10 +616,10 @@ const MainForm = ({ reff, row, setImportData }) => {
             style={{ marginRight: "5px" }}
             id="km"
             name="km"
-            placeholder="z.B. 145"
+            placeholder="z.B. 69"
             value={km}
             onChange={handleInputChange}
-            inputProps={{ style: { textAlign: "center" } }}
+            inputProps={{ style: { textAlign: "center" }, maxLength: 2 }}
           />
           <Typography>, </Typography>
           <TextField
@@ -482,15 +627,15 @@ const MainForm = ({ reff, row, setImportData }) => {
             style={{ marginLeft: "5px" }}
             id="met"
             name="met"
-            placeholder="02"
+            placeholder="875"
             value={met}
             onChange={handleInputChange}
-            inputProps={{ style: { textAlign: "center" } }}
+            inputProps={{ style: { textAlign: "center" }, maxLength: 3 }}
           />
         </Box>
         <br></br>
         <Typography variant="h6" className={classes.title}>
-          Seite
+          Seite (bezogen auf Strecke)
         </Typography>
 
         <Box display="flex" flexDirection="row" alignItems="center">
@@ -532,6 +677,24 @@ const MainForm = ({ reff, row, setImportData }) => {
           }
         />
         <Typography variant="h6" className={classes.title}>
+          Status
+        </Typography>
+        <FormControl fullWidth>
+          <Select
+            labelId="status"
+            id="status"
+            value={selectedStatus}
+            label="Status"
+            onChange={(event) => handleChangeStatus(event)}
+          >
+            {statusOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Typography variant="h6" className={classes.title}>
           Wenn keine Mastnummer vorhanden ist, dann Vermarkungsträger auswählen:
         </Typography>
         <FormControl fullWidth>
@@ -543,7 +706,7 @@ const MainForm = ({ reff, row, setImportData }) => {
             id="vermarkungstraeger"
             value={selectedVermarkungstrager}
             label="Vermarkung"
-            onChange={(event) => handleChange(event)}
+            onChange={(event) => handleChangeVermarkung(event)}
             disabled={!!mastnummer}
           >
             {vermarkungOptions.map((option) => (
@@ -560,7 +723,18 @@ const MainForm = ({ reff, row, setImportData }) => {
           disabled={selectedVermarkungstrager !== 70}
         />
         <br></br>
-        <Attribute value={gvp} setValue={setGVP} name="GVP Länge, mm" />
+        <Attribute
+          value={gvp}
+          setValue={(value) => {
+            if (selectedStatus === 3) {
+              setGVP(""); // Clear the value if selectedStatus is 3
+            } else {
+              setGVP(value); // Otherwise, set the value normally
+            }
+          }}
+          name="Offset [mm]"
+          disabled={selectedStatus === 3}
+        />
         <br></br>
         <Typography variant="h6" className={classes.title}>
           Datum

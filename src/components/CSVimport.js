@@ -25,7 +25,7 @@ const handleCSVFile = (file, setImportData, setColNames) => {
           const filteredRow = {
             id: idx,
             Streckennummer: name,
-            "GVP Länge": "",
+            "Offset [mm]": "",
           };
 
           columnsToInclude.forEach((col) => {
@@ -38,7 +38,7 @@ const handleCSVFile = (file, setImportData, setColNames) => {
         setImportData(filteredDataRows);
 
         // Set the column names
-        setColNames([...columnsToInclude, "Streckennummer", "GVP Länge"]);
+        setColNames([...columnsToInclude, "Streckennummer", "Offset [mm]"]);
       } else {
         console.error("CSV file is empty or missing data.");
         // Handle the case when the CSV file is empty or missing data
@@ -156,7 +156,7 @@ const CSVimport = ({ setShowTable, setImportData, setColNames }) => {
             component="span"
             onClick={handleClickOpen}
           >
-            Formular öffnen
+            Neupunkt erfassen
           </Button>
           <SimpleDialog
             selectedValue={""}

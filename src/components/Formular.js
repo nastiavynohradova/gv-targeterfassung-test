@@ -44,12 +44,14 @@ const useStyles = makeStyles((theme) => ({
 export const SimpleDialog = (props, ref) => {
   const classes = useStyles();
   // Separate state for each attribute
+  const [punktnummer, setPunktnummer] = useState("");
   const [streckennummer, setStreckennummer] = useState("");
   const [km, setKm] = useState("");
   const [met, setMet] = useState("");
   const [seite, setSeite] = useState(false);
   const [sonstiges, setSonstiges] = useState("");
   const [mastnummer, setMastnummer] = useState("");
+  const [selectedStatus, setselectedStatus] = useState(null);
   const [selectedVermarkungstrager, setselectedVermarkungstrager] =
     useState(null);
   const [sonstiges2, setSonstiges2] = useState("");
@@ -84,12 +86,14 @@ export const SimpleDialog = (props, ref) => {
   };
 
   const resetForm = () => {
+    setPunktnummer("");
     setStreckennummer("");
     setKm("");
     setMet("");
     setSeite(false);
     setSonstiges("");
     setMastnummer("");
+    setselectedStatus(null);
     setselectedVermarkungstrager(null);
     setGVP("");
     setSonstiges2("");
@@ -124,11 +128,20 @@ export const SimpleDialog = (props, ref) => {
     { value: 70, label: "Sonstiges" },
   ];
 
-  const handleChange = (event) => {
+  const statusOptions = [
+    { value: 1, label: "Neu vermarkter GVP mit Target" },
+    { value: 2, label: "Vorhanden (nicht in Auswahl) mit Target" },
+  ];
+
+  const handleChangeVermarkungstrager = (event) => {
     setselectedVermarkungstrager(event.target.value);
     if (event.target.value) {
       setMastnummer(""); // Reset Mastnummer when Vermarkungstrager is selected
     }
+  };
+
+  const handleChangeStatus = (event) => {
+    setselectedStatus(event.target.value);
   };
 
   const handleSubmit = () => {
@@ -138,7 +151,40 @@ export const SimpleDialog = (props, ref) => {
       setSuccessMessage(""); // Clear any existing success message
       return;
     }
-
+    // Check if streckennummer is empty
+    if (!streckennummer) {
+      setErrorMessage(
+        "Bitte geben Sie die Streckennummer ein, bevor Sie fortfahren."
+      );
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    if (!km & !met) {
+      setErrorMessage(
+        "Bitte geben Sie die Kilometrierung ein, bevor Sie fortfahren."
+      );
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    if (!seite) {
+      setErrorMessage("Bitte wählen Sie eine Seite aus, bevor Sie fortfahren.");
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    if (!mastnummer) {
+      setErrorMessage(
+        "Bitte geben Sie eine Mastnummer ein, bevor Sie fortfahren."
+      );
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
+    if (!selectedStatus) {
+      setErrorMessage(
+        "Bitte wählen Sie einen Status aus, bevor Sie fortfahren."
+      );
+      setSuccessMessage(""); // Clear any existing success message
+      return;
+    }
     // Reset the form after a successful submission
     resetForm();
 
@@ -162,8 +208,13 @@ export const SimpleDialog = (props, ref) => {
               )?.label
             : "";
 
+          const statusLabel = selectedStatus
+            ? statusOptions.find((option) => option.value === selectedStatus)
+                ?.label
+            : "";
           // Append new submission to the array
           const newSubmission = {
+            punktnummer: punktnummer,
             streckennummer: streckennummer,
             km: km,
             met: met,
@@ -171,6 +222,7 @@ export const SimpleDialog = (props, ref) => {
             sonstiges: sonstiges,
             mastnummer: mastnummer,
             selectedVermarkungstrager: vermarkungLabel,
+            selectedStatus: statusLabel,
             sonstiges2: sonstiges2,
             gvp: gvp,
             currentDate: currentDate,
@@ -191,7 +243,7 @@ export const SimpleDialog = (props, ref) => {
             // Clear the success message after a short delay
             setTimeout(() => {
               setSuccessMessage("");
-            }, 5000); // Adjust the delay as needed
+            }, 3000); // Adjust the delay as needed
           }
         } else {
           const canvas = document.createElement("canvas");
@@ -229,13 +281,20 @@ export const SimpleDialog = (props, ref) => {
                 )?.label
               : "";
 
+            const statusLabel = selectedStatus
+              ? statusOptions.find((option) => option.value === selectedStatus)
+                  ?.label
+              : "";
+
             const newSubmission = {
+              punktnummer: punktnummer,
               streckennummer: streckennummer,
               km: km,
               met: met,
               seite: seite,
               sonstiges: sonstiges,
               mastnummer: mastnummer,
+              selectedStatus: statusLabel,
               selectedVermarkungstrager: vermarkungLabel,
               sonstiges2: sonstiges2,
               gvp: gvp,
@@ -281,32 +340,54 @@ export const SimpleDialog = (props, ref) => {
 
     // Add the CSV data to the ZIP file
     const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge (m); Datum\n" +
+      "Punktnummer; Streckennummer; Kilometrierung; Seite (bezogen auf Strecke); Sonstiges; Mastnummer; Status; Vermarkung; Sonstiges Vermarkung; Offset [m]; Datum\n" +
       todaySubmissions
         .map((entry) => {
           const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
             minimumFractionDigits: 2,
           });
-          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${currentDate}`;
+          return `${entry.punktnummer};${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedStatus};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${currentDate}`;
         })
         .join("\n");
 
     zip.file(`${currentDate}.csv`, csvContent);
 
+    const vorhandenMitTargetFolder = zip.folder("Vorhanden_mit_Target");
+    const vorhandenOhneTargetFolder = zip.folder("Vorhanden_ohne_Target");
+
     // Add the image files to the ZIP file
     todaySubmissions.forEach((el, index) => {
       const date = el.currentDate.replace(/-/g, "");
+      let roundedMetWithoutLastDigit;
+      if (el.met && el.met.toString().length >= 3) {
+        const metAsNumber = parseFloat(el.met);
+        const roundedMet = Math.round(metAsNumber / 10) * 10;
+        roundedMetWithoutLastDigit = Math.floor(roundedMet / 10);
+      } else {
+        roundedMetWithoutLastDigit = el.met; // No rounding if met has 1 or 2 digits
+      }
+      let folderToAdd;
+      if (el.selectedStatus === "Vorhanden ohne Target") {
+        folderToAdd = vorhandenOhneTargetFolder;
+      } else {
+        folderToAdd = vorhandenMitTargetFolder;
+      }
+
       let filename;
 
-      if (el.mastnummer) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.mastnummer}_${date}.jpg`;
+      if (el.mastnummer && el.mastnummer.endsWith("N")) {
+        let mastnummer = el.mastnummer;
+        mastnummer = mastnummer.trim().slice(0, -1);
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${mastnummer}_${date}.jpg`;
       } else if (
         el.selectedVermarkungstrager &&
         el.selectedVermarkungstrager !== "Sonstiges"
       ) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
       } else if (el.sonstiges2) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+      } else if (el.mastnummer) {
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.mastnummer}_${date}.jpg`;
       } else {
         // Handle the case when none of the conditions are met
         console.error("Invalid submission data");
@@ -314,11 +395,11 @@ export const SimpleDialog = (props, ref) => {
       }
       if (el.photo instanceof Blob) {
         // Assuming el.photo is a Blob
-        zip.file(filename, el.photo);
+        folderToAdd.file(filename, el.photo);
       } else if (typeof el.photo === "string") {
         // Assuming el.photo is a base64 encoded string
         const base64Data = el.photo.split(",")[1];
-        zip.file(filename, base64Data, { base64: true });
+        folderToAdd.file(filename, base64Data, { base64: true });
       }
     });
 
@@ -337,34 +418,59 @@ export const SimpleDialog = (props, ref) => {
 
   const downloadCombinedData = () => {
     const zip = new JSZip();
+
     // Add the CSV data to the ZIP file
     const csvContent =
-      "Streckennummer;Kilometrierung; Seite; Sonstiges; Mastnummer; Vermarkung; Sonstiges Vermarkung; GVP Länge (m); Datum\n" +
+      "Punktnummer; Streckennummer;Kilometrierung; Seite (bezogen auf Strecke); Sonstiges; Mastnummer; Status; Vermarkung; Sonstiges Vermarkung; Offset [m]; Datum\n" +
       submissions
         .map((entry) => {
           const gvpInMeters = (entry.gvp / 1000).toLocaleString("de-DE", {
             minimumFractionDigits: 2,
           });
-          return `${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${entry.currentDate}`;
+          return `${entry.punktnummer};${entry.streckennummer};${entry.km},${entry.met};${entry.seite};${entry.sonstiges};${entry.mastnummer};${entry.selectedStatus};${entry.selectedVermarkungstrager};${entry.sonstiges2};${gvpInMeters};${entry.currentDate}`;
         })
         .join("\n");
 
     zip.file("alle_daten.csv", csvContent);
 
+    const vorhandenMitTargetFolder = zip.folder("Vorhanden_mit_Target");
+    const vorhandenOhneTargetFolder = zip.folder("Vorhanden_ohne_Target");
+
     // Add the image files to the ZIP file
     submissions.forEach((el, index) => {
       const date = el.currentDate.replace(/-/g, "");
+      let roundedMetWithoutLastDigit;
+
+      if (el.met && el.met.toString().length >= 3) {
+        const metAsNumber = parseFloat(el.met);
+        const roundedMet = Math.round(metAsNumber / 10) * 10;
+        roundedMetWithoutLastDigit = Math.floor(roundedMet / 10);
+      } else {
+        roundedMetWithoutLastDigit = el.met; // No rounding if met has 1 or 2 digits
+      }
+
+      let folderToAdd;
+      if (el.selectedStatus === "Vorhanden ohne Target") {
+        folderToAdd = vorhandenOhneTargetFolder;
+      } else {
+        folderToAdd = vorhandenMitTargetFolder;
+      }
+
       let filename;
 
-      if (el.mastnummer) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.mastnummer}_${date}.jpg`;
+      if (el.mastnummer && el.mastnummer.endsWith("N")) {
+        let mastnummer = el.mastnummer;
+        mastnummer = mastnummer.trim().slice(0, -1);
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${mastnummer}_${date}.jpg`;
       } else if (
         el.selectedVermarkungstrager &&
         el.selectedVermarkungstrager !== "Sonstiges"
       ) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.selectedVermarkungstrager}_${date}.jpg`;
       } else if (el.sonstiges2) {
-        filename = `${el.streckennummer}_${el.km},${el.met}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.sonstiges2}_${date}.jpg`;
+      } else if (el.mastnummer) {
+        filename = `${el.streckennummer}_${el.km},${roundedMetWithoutLastDigit}_${el.seite}_${el.mastnummer}_${date}.jpg`;
       } else {
         // Handle the case when none of the conditions are met
         console.error("Invalid submission data");
@@ -372,11 +478,11 @@ export const SimpleDialog = (props, ref) => {
       }
       if (el.photo instanceof Blob) {
         // Assuming el.photo is a Blob
-        zip.file(filename, el.photo);
+        folderToAdd.file(filename, el.photo);
       } else if (typeof el.photo === "string") {
         // Assuming el.photo is a base64 encoded string
         const base64Data = el.photo.split(",")[1];
-        zip.file(filename, base64Data, { base64: true });
+        folderToAdd.file(filename, base64Data, { base64: true });
       }
     });
 
@@ -408,12 +514,17 @@ export const SimpleDialog = (props, ref) => {
         boxShadow="0 0 5px rgba(0, 0, 0, 0.2)"
       >
         <Attribute
+          name="Punktnummer"
+          value={punktnummer}
+          setValue={setPunktnummer}
+        />
+        <Attribute
           name="Streckennummer"
           value={streckennummer}
           setValue={setStreckennummer}
         />
         <Typography variant="h6" className={classes.title}>
-          Kilometrierung
+          Kilometrierung [km]
         </Typography>
         <Box display="flex" flexDirection="row" alignItems="center">
           <TextField
@@ -422,9 +533,9 @@ export const SimpleDialog = (props, ref) => {
             style={{ marginRight: "5px" }}
             id="km"
             name="km"
-            placeholder="z.B. 145"
+            placeholder="z.B. 695"
             onChange={(e) => setKm(e.target.value)}
-            inputProps={{ style: { textAlign: "center" } }}
+            inputProps={{ style: { textAlign: "center" }, maxLength: 2 }}
           />
           <Typography>, </Typography>
           <TextField
@@ -433,14 +544,14 @@ export const SimpleDialog = (props, ref) => {
             style={{ marginLeft: "5px" }}
             id="met"
             name="met"
-            placeholder="02"
+            placeholder="87"
             onChange={(e) => setMet(e.target.value)}
-            inputProps={{ style: { textAlign: "center" } }}
+            inputProps={{ style: { textAlign: "center" }, maxLength: 3 }}
           />
         </Box>
         <br></br>
         <Typography variant="h6" className={classes.title}>
-          Seite
+          Seite (bezogen auf Strecke)
         </Typography>
 
         <Box display="flex" flexDirection="row" alignItems="center">
@@ -482,6 +593,24 @@ export const SimpleDialog = (props, ref) => {
           }
         />
         <Typography variant="h6" className={classes.title}>
+          Status:
+        </Typography>
+        <FormControl fullWidth>
+          <Select
+            labelId="status"
+            id="status"
+            value={selectedStatus}
+            label="Status"
+            onChange={(event) => handleChangeStatus(event)}
+          >
+            {statusOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Typography variant="h6" className={classes.title}>
           Wenn keine Mastnummer vorhanden ist, dann Vermarkungsträger auswählen:
         </Typography>
         <FormControl fullWidth>
@@ -493,7 +622,7 @@ export const SimpleDialog = (props, ref) => {
             id="vermarkungstraeger"
             value={selectedVermarkungstrager}
             label="Vermarkung"
-            onChange={(event) => handleChange(event)}
+            onChange={(event) => handleChangeVermarkungstrager(event)}
             disabled={!!mastnummer}
           >
             {vermarkungOptions.map((option) => (
@@ -510,7 +639,7 @@ export const SimpleDialog = (props, ref) => {
           disabled={selectedVermarkungstrager !== 70}
         />
         <br></br>
-        <Attribute name="GVP Länge, mm" value={gvp} setValue={setGVP} />
+        <Attribute name="Offset [mm]" value={gvp} setValue={setGVP} />
         <br></br>
         <Typography variant="h6" className={classes.title}>
           Datum
