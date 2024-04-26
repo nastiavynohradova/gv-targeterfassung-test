@@ -37,6 +37,7 @@ function SimpleDialog({
   open,
   reff,
   setImportData,
+  setOpen,
 }) {
   const classes = useStyles();
   const handleClose = () => {
@@ -50,7 +51,12 @@ function SimpleDialog({
       open={open}
     >
       <Paper elevation={3} className={classes.paper}>
-        <MainForm row={row} reff={reff} setImportData={setImportData} />
+        <MainForm
+          row={row}
+          reff={reff}
+          setImportData={setImportData}
+          setOpen={setOpen}
+        />
       </Paper>
     </Dialog>
   );
@@ -69,9 +75,10 @@ const MainFormDialogContainer = ({
     setOpen(true);
   };
 
-  const handleClose = (value) => {
-    setOpen(false);
-    setSelectedValue(selectedRowData);
+  const handleClose = () => {
+    setTimeout(() => {
+      setOpen(false); // Close the dialog upon successful form submission after a delay
+    }, 2000); // Adjust the delay time as needed (e.g., 2000 milliseconds for 2 seconds)
   };
 
   return (
@@ -93,6 +100,7 @@ const MainFormDialogContainer = ({
           reff={reff}
           selectedRowData={selectedRowData}
           setImportData={setImportData}
+          setOpen={handleClose}
         />
       </div>
     </>

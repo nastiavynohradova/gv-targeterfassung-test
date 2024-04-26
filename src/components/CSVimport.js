@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import { Box, Button, Input, Typography, Paper } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
@@ -29,7 +29,20 @@ const handleCSVFile = (file, setImportData, setColNames) => {
           };
 
           columnsToInclude.forEach((col) => {
-            filteredRow[col] = el[col];
+            if (col === "Km-Station Ist") {
+              // Round the value to 3 digits after the decimal point
+              const kmStationValue = el[col].toString();
+              const integerPart = kmStationValue
+                .split(",")[0]
+                .replace(/\D/g, "");
+              const formattedValue = integerPart.replace(
+                /\B(?=(\d{3})+(?!\d))/g,
+                ","
+              );
+              filteredRow[col] = formattedValue;
+            } else {
+              filteredRow[col] = el[col];
+            }
           });
 
           return filteredRow;

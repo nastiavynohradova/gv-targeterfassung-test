@@ -44,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const MainForm = ({ reff, row, setImportData }) => {
+const MainForm = ({ reff, row, setImportData, onSubmitSuccess, setOpen }) => {
   const [formData, setFormData] = useState({
     seite: false,
     sonstiges: "",
@@ -95,17 +95,6 @@ const MainForm = ({ reff, row, setImportData }) => {
     );
   }, [gvp, mastnummer, row.id, setImportData]);
 
-  //const capture = () => {
-  //  const imageSrc = webcamRef.current.getScreenshot();
-  //  setPhoto(imageSrc);
-  //};
-
-  //const videoConstraints = {
-  //  width: 440,
-  //  height: 280,
-  //  facingMode: { exact: "environment" },
-  //};
-
   // State for displaying the success and error message
   const [successOpen, setSuccessOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
@@ -114,9 +103,9 @@ const MainForm = ({ reff, row, setImportData }) => {
     setCurrentDate(new Date().toISOString().slice(0, 10));
     if (row) {
       if (row["Km-Station Ist"]) {
-        const [kmValue, meterValue] = row["Km-Station Ist"].split(",");
-        const km = kmValue.slice(0, -3);
-        const meters = parseFloat(kmValue.slice(-3));
+        const [km, meters] = row["Km-Station Ist"].split(",");
+        //const km = kmValue.slice(0, -3);
+        //const meters = parseFloat(kmValue.slice(-3));
         setKm(km);
         setMet(meters);
       }
@@ -262,8 +251,8 @@ const MainForm = ({ reff, row, setImportData }) => {
             // Add the new submission
             await addSubmission(db, newSubmission);
             setSubmissions(data);
-
             setSuccessMessage("Erfolgreich hinzugefügt");
+            setOpen(false);
             setSuccessOpen(true);
           } catch (error) {
             console.error("Error adding or fetching submission: ", error);
@@ -346,20 +335,12 @@ const MainForm = ({ reff, row, setImportData }) => {
               // Add the new submission
               await addSubmission(db, newSubmission);
               setSubmissions(data);
-
               setSuccessMessage("Erfolgreich hinzugefügt");
               setSuccessOpen(true);
             } catch (error) {
               console.error("Error adding or fetching submission: ", error);
             }
           } catch (error) {
-            /* else {
-              console.error("Compressed photo size is still too large.");
-              setErrorMessage(
-                "Die komprimierte Foto-Größe ist immer noch zu groß, um eine vernünftige Qualität beizubehalten. Bitte wählen Sie eine kleinere Dateigröße oder optimieren Sie das Bild, bevor Sie es hochladen."
-              );
-              setSuccessMessage(""); // Clear any existing success message
-            } */
             console.error("Error compressing photo: ", error);
           }
         }
